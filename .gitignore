@@ -1,5 +1,5 @@
 ```
-# Build artifacts and binaries
+# Build artifacts
 bin/
 obj/
 *.dll
@@ -7,6 +7,8 @@ obj/
 *.pdb
 *.so
 *.dylib
+*.jar
+*.war
 *.class
 *.o
 *.obj
@@ -15,43 +17,29 @@ obj/
 # Dependencies
 packages/
 node_modules/
-vendor/
-
-# Logs
-*.log
-**/logs/
-
-# Environment specific
+venv/
+.venv/
 .env
 .env.local
 .env.*
-*.local
 
-# User-specific files
-.vs/
-.vscode/
-.idea/
-*.userprefs
-*.swp
-*.swo
+# Logs
+*.log
 
 # OS generated files
 .DS_Store
 Thumbs.db
-desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
 # Testing
 coverage/
 htmlcov/
-*.coverage
-
-# Temporary files
-*.tmp
-*~
-```
-
-Wait, let me reconsider. The file changes are only C# source files (.cs), which are source code and not build artifacts. No build artifacts, dependencies, or temporary files were listed in the changes.
-
-```
-
+.coverage
+.nyc_output/
 ```
