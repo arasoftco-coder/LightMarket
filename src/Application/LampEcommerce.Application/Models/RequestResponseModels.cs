@@ -1,5 +1,7 @@
 namespace LampEcommerce.Application.Models;
 
+using LampEcommerce.Application.DTOs;
+
 // Auth Requests
 public class RegisterRequest
 {

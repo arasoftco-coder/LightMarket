@@ -40,25 +40,25 @@ public class SmsService : ISmsService
             {
                 Id = 1,
                 Name = "Order Confirmation",
-                Content = "Dear {CustomerName}, your order #{InvoiceNumber} has been confirmed."
+                Template = "Dear {CustomerName}, your order #{InvoiceNumber} has been confirmed."
             },
             new SmsTemplateDto
             {
                 Id = 2,
                 Name = "Payment Received",
-                Content = "Dear {CustomerName}, we received your payment for order #{InvoiceNumber}."
+                Template = "Dear {CustomerName}, we received your payment for order #{InvoiceNumber}."
             },
             new SmsTemplateDto
             {
                 Id = 3,
                 Name = "Shipping Notification",
-                Content = "Dear {CustomerName}, your order #{InvoiceNumber} has been shipped. Tracking: {TrackingCode}"
+                Template = "Dear {CustomerName}, your order #{InvoiceNumber} has been shipped. Tracking: {TrackingCode}"
             },
             new SmsTemplateDto
             {
                 Id = 4,
                 Name = "OTP Verification",
-                Content = "Your verification code is: {OTP}. Valid for 2 minutes."
+                Template = "Your verification code is: {OTP}. Valid for 2 minutes."
             }
         };
         return Task.FromResult<IEnumerable<SmsTemplateDto>>(templates);

@@ -6,7 +6,7 @@ namespace LampEcommerce.Application.Services;
 
 public class OrderService : IOrderService
 {
-    public Task<OrderDto?> CreateOrderAsync(int userId, CheckoutRequest request)
+    public Task<OrderDto?> CreateOrder(int userId, int cartId, int addressId, string shippingMethod, string paymentMethod)
     {
         // Calculate totals (subtotal, discount, tax, shipping)
         // Create order with status "PaymentPending"
@@ -21,8 +21,8 @@ public class OrderService : IOrderService
             DiscountAmount = 50.00m,
             TaxAmount = 45.00m,
             ShippingCost = 30.00m,
-            ShippingMethod = request.ShippingMethod,
-            PaymentMethod = request.PaymentMethod,
+            ShippingMethod = shippingMethod,
+            PaymentMethod = paymentMethod,
             Status = "PaymentPending",
             CreatedAt = DateTime.Now,
             OrderItems = new List<OrderItemDto>
@@ -40,7 +40,7 @@ public class OrderService : IOrderService
         return Task.FromResult<OrderDto?>(order);
     }
 
-    public Task<OrderDto?> ConfirmPaymentAsync(ConfirmPaymentRequest request)
+    public Task<OrderDto?> ConfirmPayment(int orderId, string trackingCode)
     {
         // Change status to "PaymentConfirmed"
         // Send SMS to admin and user
@@ -48,62 +48,49 @@ public class OrderService : IOrderService
         
         var order = new OrderDto
         {
-            Id = request.OrderId,
+            Id = orderId,
             Status = "PaymentConfirmed",
-            PaymentTrackingCode = request.TrackingCode,
+            PaymentTrackingCode = trackingCode,
             TotalAmount = 500.00m,
             CreatedAt = DateTime.Now
         };
         return Task.FromResult<OrderDto?>(order);
     }
 
-    public Task<OrderDto?> UpdateOrderStatusAsync(UpdateOrderStatusRequest request)
-    {
-        var order = new OrderDto
-        {
-            Id = request.OrderId,
-            Status = request.Status,
-            TotalAmount = 500.00m,
-            CreatedAt = DateTime.Now
-        };
-        return Task.FromResult<OrderDto?>(order);
-    }
-
-    public Task<ApiResponse> EditInvoiceAsync(EditInvoiceRequest request)
+    public Task<OrderDto?> EditInvoice(int orderId, Dictionary<string, object> changes, string reason, string changedBy)
     {
         // Log all changes to InvoiceAuditLog
         // Recalculate totals
         // Track refund/charge difference
         
-        var response = new ApiResponse
-        {
-            Success = true,
-            Message = "Invoice edited successfully. Changes logged."
-        };
-        return Task.FromResult(response);
-    }
-
-    public Task<OrderDto?> GetOrderByIdAsync(int orderId)
-    {
         var order = new OrderDto
         {
             Id = orderId,
-            UserId = 1,
-            CampaignId = 1,
+            Status = "InvoiceEdited",
             TotalAmount = 500.00m,
-            DiscountAmount = 50.00m,
-            TaxAmount = 45.00m,
-            ShippingCost = 30.00m,
-            ShippingMethod = "Standard",
-            PaymentMethod = "Online",
-            Status = "PaymentConfirmed",
-            CreatedAt = DateTime.Now,
-            OrderItems = new List<OrderItemDto>()
+            CreatedAt = DateTime.Now
         };
         return Task.FromResult<OrderDto?>(order);
     }
 
-    public Task<IEnumerable<OrderDto>> GetUserOrdersAsync(int userId)
+    public Task<OrderDto?> UpdateShippingInfo(int orderId, string trackingCode, string shippingCompany)
+    {
+        // Change status to "Shipped"
+        // Generate tracking link
+        // Send SMS to user with tracking info
+        
+        var order = new OrderDto
+        {
+            Id = orderId,
+            Status = "Shipped",
+            PaymentTrackingCode = trackingCode,
+            TotalAmount = 500.00m,
+            CreatedAt = DateTime.Now
+        };
+        return Task.FromResult<OrderDto?>(order);
+    }
+
+    public Task<IEnumerable<OrderDto>> GetUserOrders(int userId)
     {
         var orders = new List<OrderDto>
         {
@@ -129,19 +116,22 @@ public class OrderService : IOrderService
         return Task.FromResult<IEnumerable<OrderDto>>(orders);
     }
 
-    public Task<OrderDto?> UpdateShippingInfoAsync(int orderId, string trackingCode, string shippingCompany)
+    public Task<OrderDto?> GetOrderDetails(int orderId)
     {
-        // Change status to "Shipped"
-        // Generate tracking link
-        // Send SMS to user with tracking info
-        
         var order = new OrderDto
         {
             Id = orderId,
-            Status = "Shipped",
-            PaymentTrackingCode = trackingCode,
+            UserId = 1,
+            CampaignId = 1,
             TotalAmount = 500.00m,
-            CreatedAt = DateTime.Now
+            DiscountAmount = 50.00m,
+            TaxAmount = 45.00m,
+            ShippingCost = 30.00m,
+            ShippingMethod = "Standard",
+            PaymentMethod = "Online",
+            Status = "PaymentConfirmed",
+            CreatedAt = DateTime.Now,
+            OrderItems = new List<OrderItemDto>()
         };
         return Task.FromResult<OrderDto?>(order);
     }

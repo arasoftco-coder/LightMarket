@@ -6,73 +6,65 @@ namespace LampEcommerce.Application.Services;
 
 public class CartService : ICartService
 {
-    public Task<ApiResponse> AddToCartAsync(int userId, AddToCartRequest request)
+    public Task<CartItemDto?> AddToCart(int userId, int campaignId, int productId, int quantity)
     {
         // Validate campaign is active
         // Check stock availability
         // Check min/max quantity per user
         // Add to cart (create cart if not exists)
         
-        var response = new ApiResponse
+        var cartItem = new CartItemDto
         {
-            Success = true,
-            Message = "Product added to cart successfully"
+            Id = 1,
+            UserId = userId,
+            ProductId = productId,
+            Quantity = quantity,
+            UnitPrice = 150.00m,
+            AddedAt = DateTime.Now
         };
-        return Task.FromResult(response);
+        return Task.FromResult<CartItemDto?>(cartItem);
     }
 
-    public Task<ApiResponse> UpdateQuantityAsync(int userId, UpdateCartQuantityRequest request)
+    public Task<CartItemDto?> UpdateQuantity(int userId, int cartItemId, int quantity)
     {
         // Validate limits and stock
-        var response = new ApiResponse
+        var cartItem = new CartItemDto
         {
-            Success = true,
-            Message = "Cart quantity updated successfully"
+            Id = cartItemId,
+            UserId = userId,
+            ProductId = 1,
+            Quantity = quantity,
+            UnitPrice = 150.00m,
+            AddedAt = DateTime.Now
         };
-        return Task.FromResult(response);
+        return Task.FromResult<CartItemDto?>(cartItem);
     }
 
-    public Task<ApiResponse> RemoveFromCartAsync(int userId, int cartItemId)
+    public Task<bool> RemoveFromCart(int userId, int cartItemId)
     {
-        var response = new ApiResponse
-        {
-            Success = true,
-            Message = "Item removed from cart successfully"
-        };
-        return Task.FromResult(response);
+        // Remove item from cart
+        return Task.FromResult(true);
     }
 
-    public Task<IEnumerable<OrderItemDto>> GetCartAsync(int userId)
+    public Task<CartDto?> GetCart(int userId, int campaignId)
     {
         // Return cart with calculated totals
-        var cartItems = new List<OrderItemDto>
+        var cart = new CartDto
         {
-            new OrderItemDto
+            UserId = userId,
+            Items = new List<CartItemDto>
             {
-                Id = 1,
-                OrderId = 0, // Cart items don't have order ID yet
-                ProductId = 1,
-                Quantity = 2,
-                UnitPrice = 150.00m,
-                TotalPrice = 300.00m,
-                Product = new ProductDto
+                new CartItemDto
                 {
                     Id = 1,
-                    Name = "Sample Product",
-                    BasePrice = 150.00m
+                    UserId = userId,
+                    ProductId = 1,
+                    Quantity = 2,
+                    UnitPrice = 150.00m,
+                    AddedAt = DateTime.Now
                 }
             }
         };
-        return Task.FromResult<IEnumerable<OrderItemDto>>(cartItems);
-    }
-
-    public Task<ApiResponse> ClearCartAsync(int userId)
-    {
-        var response = new ApiResponse
-        {
-            Success = true,
-            Message = "Cart cleared successfully"
-        };
-        return Task.FromResult(response);
+        return Task.FromResult<CartDto?>(cart);
     }
 }

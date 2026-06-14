@@ -22,96 +22,38 @@ public class AuthService : IAuthService
         _cache = cache;
     }
 
-    public Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public Task<UserDto?> GenerateOTP(string phoneNumber)
+    {
+        // In Phase 3, this will generate OTP and send via SMS
+        var user = new UserDto
+        {
+            PhoneNumber = phoneNumber
+        };
+        return Task.FromResult<UserDto?>(user);
+    }
+
+    public Task<UserDto?> VerifyOTP(string phoneNumber, string code)
+    {
+        // In Phase 3, this will verify OTP from database/cache
+        var user = new UserDto
+        {
+            PhoneNumber = phoneNumber
+        };
+        return Task.FromResult<UserDto?>(user);
+    }
+
+    public Task<UserDto> Register(string phoneNumber, string fullName)
     {
         // In Phase 3, this will be implemented with database operations
-        var response = new AuthResponse
+        var user = new UserDto
         {
-            Success = true,
-            Message = "Registration successful. Please verify OTP.",
-            User = new UserDto
-            {
-                PhoneNumber = request.PhoneNumber,
-                FullName = request.FullName
-            }
+            PhoneNumber = phoneNumber,
+            FullName = fullName
         };
-        return Task.FromResult(response);
+        return Task.FromResult(user);
     }
 
-    public Task<AuthResponse> LoginAsync(LoginRequest request)
-    {
-        // In Phase 3, this will validate credentials from database
-        var token = GenerateJwtToken(1, request.PhoneNumber);
-        
-        var response = new AuthResponse
-        {
-            Success = true,
-            Token = token,
-            Message = "Login successful",
-            User = new UserDto
-            {
-                PhoneNumber = request.PhoneNumber
-            }
-        };
-        return Task.FromResult(response);
-    }
-
-    public Task<OtpResponse> GenerateOtpAsync(GenerateOtpRequest request)
-    {
-        var random = new Random();
-        var otp = random.Next(10000, 99999).ToString();
-        var cacheKey = $"OTP_{request.PhoneNumber}";
-        
-        _cache.Set(cacheKey, otp, OtpExpiryTime);
-        
-        var response = new OtpResponse
-        {
-            Success = true,
-            Message = "OTP sent successfully",
-            OtpId = cacheKey
-        };
-        return Task.FromResult(response);
-    }
-
-    public Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request)
-    {
-        var cacheKey = $"OTP_{request.PhoneNumber}";
-        
-        if (!_cache.TryGetValue(cacheKey, out string? storedOtp))
-        {
-            return Task.FromResult(new AuthResponse
-            {
-                Success = false,
-                Message = "OTP expired or not found"
-            });
-        }
-        
-        if (storedOtp != request.Otp)
-        {
-            return Task.FromResult(new AuthResponse
-            {
-                Success = false,
-                Message = "Invalid OTP"
-            });
-        }
-        
-        _cache.Remove(cacheKey);
-        var token = GenerateJwtToken(1, request.PhoneNumber);
-        
-        var response = new AuthResponse
-        {
-            Success = true,
-            Token = token,
-            Message = "OTP verified successfully",
-            User = new UserDto
-            {
-                PhoneNumber = request.PhoneNumber
-            }
-        };
-        return Task.FromResult(response);
-    }
-
-    public Task<bool> SetPasswordAsync(int userId, string password)
+    public Task<bool> SetPassword(int userId, string password)
     {
         var salt = GenerateSalt();
         var hashedPassword = HashPassword(password, salt);
