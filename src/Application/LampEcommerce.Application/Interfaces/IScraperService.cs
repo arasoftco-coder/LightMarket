@@ -1,6 +1,6 @@
 namespace LampEcommerce.Application.Interfaces;
 
-public interface IS scraperService
+public interface IScraperService
 {
     Task<List<ProductScrapeResult>> ScrapeFromUrl(int supplierId, string url, Dictionary<string, string> extractionConfig);
     Task<bool> UpdateCampaignPrices(int campaignId);
