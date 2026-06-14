@@ -7,4 +7,5 @@ public interface IScraperService
 {
     Task<ApiResponse<IEnumerable<ProductDto>>> ScrapeProductsAsync(ScrapeProductsRequest request);
     Task<ApiResponse> UpdatePricesAsync(UpdatePricesRequest request);
+    Task<ApiResponse> UpdateCampaignPricesAsync(int campaignId);
 }

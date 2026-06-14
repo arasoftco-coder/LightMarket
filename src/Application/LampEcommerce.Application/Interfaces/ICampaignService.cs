@@ -8,4 +8,5 @@ public interface ICampaignService
     Task<CampaignDto?> GetCampaignBySlugAsync(string slug);
     Task<CampaignDto?> GetCampaignByIdAsync(int campaignId);
     Task<IEnumerable<CampaignProductDto>> GetCampaignProductsAsync(int campaignId);
+    Task<bool> ValidateCampaignAccessAsync(int campaignId, int userId);
 }

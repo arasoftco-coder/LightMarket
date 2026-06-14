@@ -9,4 +9,5 @@ public interface IAuthService
     Task<AuthResponse> LoginAsync(LoginRequest request);
     Task<OtpResponse> GenerateOtpAsync(GenerateOtpRequest request);
     Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request);
+    Task<bool> SetPasswordAsync(int userId, string password);
 }

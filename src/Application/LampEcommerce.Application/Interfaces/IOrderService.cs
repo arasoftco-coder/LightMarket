@@ -11,4 +11,5 @@ public interface IOrderService
     Task<ApiResponse> EditInvoiceAsync(EditInvoiceRequest request);
     Task<OrderDto?> GetOrderByIdAsync(int orderId);
     Task<IEnumerable<OrderDto>> GetUserOrdersAsync(int userId);
+    Task<OrderDto?> UpdateShippingInfoAsync(int orderId, string trackingCode, string shippingCompany);
 }
