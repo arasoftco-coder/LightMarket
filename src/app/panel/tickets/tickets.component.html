@@ -1,0 +1,45 @@
+<div class="tickets-container" dir="rtl">
+  <div class="header">
+    <h2>تیکت‌های پشتیبانی</h2>
+    <button pButton type="button" label="ثبت تیکت جدید" icon="pi pi-plus" (click)="openNewTicketDialog()"></button>
+  </div>
+
+  <div *ngIf="tickets.length === 0" class="empty-state">
+    <p>هیچ تیکتی ثبت نشده است.</p>
+  </div>
+
+  <div class="tickets-list">
+    <div *ngFor="let ticket of tickets" class="ticket-card" (click)="viewTicket(ticket)">
+      <div class="ticket-header">
+        <h4>{{ ticket.subject }}</h4>
+        <p-tag [value]="ticket.status === 'Open' ? 'باز' : 'بسته'" 
+               [severity]="ticket.status === 'Open' ? 'success' : 'secondary'"></p-tag>
+      </div>
+      <div class="ticket-meta">
+        <span>دسته‌بندی: {{ getCategoryFa(ticket.category) }}</span>
+        <span>تاریخ: {{ ticket.date }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Ticket Dialog -->
+  <p-dialog header="ثبت تیکت جدید" [(visible)]="showDialog" [modal]="true" [style]="{ width: '600px' }">
+    <div class="form-group">
+      <label>دسته‌بندی:</label>
+      <p-dropdown [options]="categories" [(ngModel)]="newTicket.category" placeholder="انتخاب کنید" styleClass="w-full"></p-dropdown>
+    </div>
+    <div class="form-group">
+      <label>موضوع:</label>
+      <input type="text" pInputText [(ngModel)]="newTicket.subject" class="w-full" />
+    </div>
+    <div class="form-group">
+      <label>پیام:</label>
+      <textarea pInputTextarea [(ngModel)]="newTicket.message" rows="5" class="w-full"></textarea>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <button pButton type="button" label="انصراف" icon="pi pi-times" class="p-button-text" (click)="showDialog = false"></button>
+      <button pButton type="button" label="ثبت تیکت" icon="pi pi-check" (click)="submitTicket()"></button>
+    </ng-template>
+  </p-dialog>
+</div>

@@ -1,11 +1,69 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { OrderService } from '../../../services/order.service';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { ButtonModule } from 'primeng/button';
+
+interface Order {
+  id: number;
+  orderNumber: string;
+  date: string;
+  totalAmount: number;
+  status: string;
+  statusFa: string;
+  items?: any[];
+}
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule],
-  template: `<h2>سفارش‌ها</h2><p>این صفحه در فاز بعدی پیاده‌سازی خواهد شد.</p>`,
-  styles: [`h2 { color: var(--text-color); margin-bottom: 16px; } p { color: var(--text-light); }`]
+  imports: [CommonModule, TableModule, TagModule, ButtonModule],
+  templateUrl: './orders.component.html',
+  styleUrls: ['./orders.component.css']
 })
-export class OrdersComponent {}
+export class OrdersComponent implements OnInit {
+  orders: Order[] = [];
+  selectedOrder: Order | null = null;
+  showDetails: boolean = false;
+
+  constructor(private orderService: OrderService) {}
+
+  ngOnInit(): void {
+    this.loadOrders();
+  }
+
+  loadOrders(): void {
+    this.orderService.getUserOrders().subscribe({
+      next: (data) => {
+        this.orders = data.map((order: any) => ({
+          ...order,
+          statusFa: this.getStatusFa(order.status)
+        }));
+      },
+      error: (err) => console.error('Error loading orders:', err)
+    });
+  }
+
+  getStatusFa(status: string): string {
+    const map: { [key: string]: string } = {
+      'PaymentPending': 'در انتظار پرداخت',
+      'PaymentConfirmed': 'پرداخت شده',
+      'Processing': 'در حال پردازش',
+      'Shipped': 'ارسال شده',
+      'Delivered': 'تحویل داده شده',
+      'Cancelled': 'لغو شده'
+    };
+    return map[status] || status;
+  }
+
+  viewDetails(order: Order): void {
+    this.selectedOrder = order;
+    this.showDetails = true;
+  }
+
+  closeDetails(): void {
+    this.showDetails = false;
+    this.selectedOrder = null;
+  }
+}

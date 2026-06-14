@@ -1,4 +1,109 @@
-<div class="checkout-placeholder">
+<div class="checkout-container" dir="rtl">
   <h2>تکمیل خرید</h2>
-  <p>این صفحه در فاز بعدی پیاده‌سازی خواهد شد.</p>
+  
+  <!-- Step Indicators -->
+  <div class="steps-indicator">
+    <div class="step" [class.active]="step >= 1" (click)="goToStep(1)">
+      <span class="step-number">۱</span>
+      <span class="step-label">انتخاب آدرس</span>
+    </div>
+    <div class="step" [class.active]="step >= 2" (click)="goToStep(2)">
+      <span class="step-number">۲</span>
+      <span class="step-label">روش ارسال</span>
+    </div>
+    <div class="step" [class.active]="step >= 3">
+      <span class="step-number">۳</span>
+      <span class="step-label">بررسی نهایی</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Address Selection -->
+  <div class="step-content" *ngIf="step === 1">
+    <h3>آدرس تحویل را انتخاب کنید</h3>
+    
+    <div class="addresses-list">
+      <div *ngFor="let addr of addresses" class="address-card" 
+           [class.selected]="selectedAddressId === addr.id"
+           (click)="selectedAddressId = addr.id">
+        <p-radioButton [value]="addr.id" [(ngModel)]="selectedAddressId"></p-radioButton>
+        <div class="address-details">
+          <p>{{ addr.fullAddress }}</p>
+          <p *ngIf="addr.postalCode">کد پستی: {{ addr.postalCode }}</p>
+        </div>
+      </div>
+    </div>
+
+    <button pButton type="button" label="افزودن آدرس جدید" icon="pi pi-plus" 
+            class="p-button-outlined" (click)="showNewAddressForm = !showNewAddressForm"></button>
+
+    <div *ngIf="showNewAddressForm" class="new-address-form">
+      <input type="text" pInputText placeholder="استان" [(ngModel)]="newAddress.province" />
+      <input type="text" pInputText placeholder="شهر" [(ngModel)]="newAddress.city" />
+      <input type="text" pInputText placeholder="خیابان، پلاک، واحد" [(ngModel)]="newAddress.street" />
+      <input type="text" pInputText placeholder="کد پستی" [(ngModel)]="newAddress.postalCode" />
+      <button pButton type="button" label="ذخیره آدرس" icon="pi pi-check" (click)="addNewAddress()"></button>
+    </div>
+
+    <button pButton type="button" label="مرحله بعد" icon="pi pi-arrow-left" iconPos="left"
+            [disabled]="!selectedAddressId" (click)="step = 2"></button>
+  </div>
+
+  <!-- Step 2: Shipping Method -->
+  <div class="step-content" *ngIf="step === 2">
+    <h3>روش ارسال را انتخاب کنید</h3>
+    
+    <div class="shipping-methods">
+      <div *ngFor="let method of shippingMethods" class="shipping-card"
+           [class.selected]="selectedShippingMethodId === method.id"
+           (click)="selectedShippingMethodId = method.id; onShippingMethodChange()">
+        <p-radioButton [value]="method.id" [(ngModel)]="selectedShippingMethodId"></p-radioButton>
+        <div class="shipping-details">
+          <h4>{{ method.name }}</h4>
+          <p>زمان تقریبی: {{ method.estimatedDays }}</p>
+          <p class="cost">{{ method.cost | number:'1.0-0' }} تومان</p>
+        </div>
+      </div>
+    </div>
+
+    <button pButton type="button" label="بازگشت" icon="pi pi-arrow-right" iconPos="right"
+            class="p-button-secondary" (click)="step = 1"></button>
+    <button pButton type="button" label="مرحله بعد" icon="pi pi-arrow-left" iconPos="left"
+            [disabled]="!selectedShippingMethodId" (click)="step = 3"></button>
+  </div>
+
+  <!-- Step 3: Review & Pay -->
+  <div class="step-content" *ngIf="step === 3">
+    <h3>بررسی نهایی سفارش</h3>
+    
+    <div class="order-summary">
+      <div class="summary-section">
+        <h4>محصولات</h4>
+        <div *ngFor="let item of cartItems" class="summary-item">
+          <span>{{ item.productName }} ({{ item.quantity }} عدد)</span>
+          <span>{{ item.totalPrice | number:'1.0-0' }} تومان</span>
+        </div>
+      </div>
+
+      <div class="summary-section">
+        <h4>هزینه‌ها</h4>
+        <div class="summary-row">
+          <span>جمع محصولات:</span>
+          <span>{{ subtotal | number:'1.0-0' }} تومان</span>
+        </div>
+        <div class="summary-row">
+          <span>هزینه ارسال:</span>
+          <span>{{ shippingCost | number:'1.0-0' }} تومان</span>
+        </div>
+        <div class="summary-row total">
+          <span>مبلغ قابل پرداخت:</span>
+          <span>{{ totalAmount | number:'1.0-0' }} تومان</span>
+        </div>
+      </div>
+    </div>
+
+    <button pButton type="button" label="بازگشت" icon="pi pi-arrow-right" iconPos="right"
+            class="p-button-secondary" (click)="step = 2"></button>
+    <button pButton type="button" label="پرداخت و ثبت سفارش" icon="pi pi-lock" 
+            [loading]="loading" (click)="createOrder()"></button>
+  </div>
 </div>

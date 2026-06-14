@@ -1,4 +1,56 @@
-<div class="cart-placeholder">
-  <h2>سبد خرید</h2>
-  <p>این صفحه در فاز بعدی پیاده‌سازی خواهد شد.</p>
+<div class="cart-container" dir="rtl">
+  <h2>سبد خرید شما</h2>
+
+  <div *ngIf="loading" class="loading">
+    در حال بارگذاری...
+  </div>
+
+  <div *ngIf="!loading && cartItems.length === 0" class="empty-cart">
+    <p>سبد خرید شما خالی است.</p>
+    <p-button label="بازگشت به فروشگاه" routerLink="/" icon="pi pi-arrow-right"></p-button>
+  </div>
+
+  <div *ngIf="!loading && cartItems.length > 0" class="cart-items">
+    <div *ngFor="let item of cartItems" class="cart-item-card">
+      <div class="item-image">
+        <img [src]="item.productImage || 'assets/images/placeholder.png'" [alt]="item.productName" />
+      </div>
+      
+      <div class="item-details">
+        <h3>{{ item.productName }}</h3>
+        <p class="item-price">{{ item.price | number:'1.0-0' }} تومان</p>
+      </div>
+
+      <div class="item-controls">
+        <p-inputNumber 
+          [(ngModel)]="item.quantity" 
+          [min]="1" 
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          decrementButtonClass="p-button-secondary"
+          incrementButtonClass="p-button-secondary"
+          (onModelChange)="updateQuantity(item, $event)">
+        </p-inputNumber>
+        
+        <button pButton type="button" icon="pi pi-trash" class="p-button-danger p-button-text" 
+                (click)="removeFromCart(item.id)" title="حذف"></button>
+      </div>
+
+      <div class="item-total">
+        <span class="label">جمع:</span>
+        <span class="value">{{ item.totalPrice | number:'1.0-0' }} تومان</span>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>مبلغ کل:</span>
+        <span class="total-amount">{{ totalAmount | number:'1.0-0' }} تومان</span>
+      </div>
+      
+      <button pButton type="button" label="ادامه فرآیند پرداخت" icon="pi pi-lock" 
+              class="p-button-success checkout-btn" 
+              (click)="proceedToCheckout()"></button>
+    </div>
+  </div>
 </div>

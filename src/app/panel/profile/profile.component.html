@@ -1,0 +1,49 @@
+<div class="profile-container" dir="rtl">
+  <h2>پروفایل کاربری</h2>
+
+  <div class="profile-card">
+    <div class="form-row">
+      <label>نام و نام خانوادگی:</label>
+      <input *ngIf="editing" type="text" pInputText [(ngModel)]="user.fullName" />
+      <span *ngIf="!editing">{{ user.fullName || '-' }}</span>
+    </div>
+
+    <div class="form-row">
+      <label>شماره موبایل:</label>
+      <span>{{ user.phoneNumber || '-' }}</span>
+    </div>
+
+    <div class="form-row">
+      <label>ایمیل:</label>
+      <input *ngIf="editing" type="email" pInputText [(ngModel)]="user.email" />
+      <span *ngIf="!editing">{{ user.email || '-' }}</span>
+    </div>
+
+    <div class="actions">
+      <button *ngIf="!editing" pButton type="button" label="ویرایش پروفایل" icon="pi pi-pencil" (click)="editing = true"></button>
+      <button *ngIf="editing" pButton type="button" label="ذخیره تغییرات" icon="pi pi-check" class="p-button-success" (click)="saveProfile()"></button>
+      <button *ngIf="editing" pButton type="button" label="انصراف" icon="pi pi-times" class="p-button-secondary" (click)="editing = false; loadProfile()"></button>
+    </div>
+  </div>
+
+  <div class="password-section">
+    <h3>تغییر رمز عبور</h3>
+    <button pButton type="button" label="تغییر رمز عبور" icon="pi pi-lock" class="p-button-info" (click)="showPasswordForm = !showPasswordForm"></button>
+
+    <div *ngIf="showPasswordForm" class="password-form">
+      <div class="form-row">
+        <label>رمز عبور فعلی:</label>
+        <input type="password" pInputText [(ngModel)]="passwords.current" />
+      </div>
+      <div class="form-row">
+        <label>رمز عبور جدید:</label>
+        <input type="password" pInputText [(ngModel)]="passwords.new" />
+      </div>
+      <div class="form-row">
+        <label>تکرار رمز عبور جدید:</label>
+        <input type="password" pInputText [(ngModel)]="passwords.confirm" />
+      </div>
+      <button pButton type="button" label="ثبت رمز عبور جدید" icon="pi pi-check" class="p-button-success" (click)="changePassword()"></button>
+    </div>
+  </div>
+</div>

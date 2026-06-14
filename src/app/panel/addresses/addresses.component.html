@@ -1,0 +1,48 @@
+<div class="addresses-container" dir="rtl">
+  <div class="header">
+    <h2>آدرس‌های من</h2>
+    <button pButton type="button" label="افزودن آدرس جدید" icon="pi pi-plus" (click)="openAddDialog()"></button>
+  </div>
+
+  <div *ngIf="addresses.length === 0" class="empty-state">
+    <p>هیچ آدرسی ثبت نشده است.</p>
+  </div>
+
+  <div class="addresses-grid">
+    <div *ngFor="let addr of addresses" class="address-card">
+      <div class="address-content">
+        <h4>{{ addr.province }} - {{ addr.city }}</h4>
+        <p>{{ addr.fullAddress }}</p>
+        <p *ngIf="addr.postalCode"><small>کد پستی: {{ addr.postalCode }}</small></p>
+      </div>
+      <div class="address-actions">
+        <button pButton type="button" icon="pi pi-pencil" class="p-button-rounded p-button-info" (click)="openEditDialog(addr)"></button>
+        <button pButton type="button" icon="pi pi-trash" class="p-button-rounded p-button-danger" (click)="deleteAddress(addr.id)"></button>
+      </div>
+    </div>
+  </div>
+
+  <p-dialog header="{{ editingAddress ? 'ویرایش آدرس' : 'افزودن آدرس جدید' }}" [(visible)]="showDialog" [modal]="true" [style]="{ width: '500px' }">
+    <div class="form-group">
+      <label>استان:</label>
+      <input type="text" pInputText [(ngModel)]="newAddress.province" class="w-full" />
+    </div>
+    <div class="form-group">
+      <label>شهر:</label>
+      <input type="text" pInputText [(ngModel)]="newAddress.city" class="w-full" />
+    </div>
+    <div class="form-group">
+      <label>خیابان، پلاک، واحد:</label>
+      <input type="text" pInputText [(ngModel)]="newAddress.street" class="w-full" />
+    </div>
+    <div class="form-group">
+      <label>کد پستی:</label>
+      <input type="text" pInputText [(ngModel)]="newAddress.postalCode" class="w-full" />
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <button pButton type="button" label="انصراف" icon="pi pi-times" class="p-button-text" (click)="showDialog = false"></button>
+      <button pButton type="button" label="ذخیره" icon="pi pi-check" (click)="saveAddress()"></button>
+    </ng-template>
+  </p-dialog>
+</div>

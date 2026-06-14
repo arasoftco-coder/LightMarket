@@ -1,0 +1,62 @@
+<div class="magic-checkout-container" dir="rtl">
+  <div *ngIf="loading" class="loading-state">
+    <p>در حال بارگذاری اطلاعات سفارش...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <h2>خطا</h2>
+    <p>{{ error }}</p>
+    <button pButton type="button" label="بازگشت به صفحه اصلی" routerLink="/" icon="pi pi-home"></button>
+  </div>
+
+  <div *ngIf="!loading && !error && invoice" class="invoice-card">
+    <h2>فاکتور سفارش</h2>
+    
+    <div class="invoice-header">
+      <p><strong>شماره سفارش:</strong> {{ invoice.orderNumber }}</p>
+      <p><strong>وضعیت:</strong> {{ invoice.status === 'PaymentPending' ? 'در انتظار پرداخت' : invoice.status }}</p>
+    </div>
+
+    <div class="invoice-items">
+      <h3>محصولات</h3>
+      <table *ngIf="invoice.items && invoice.items.length > 0">
+        <thead>
+          <tr>
+            <th>محصول</th>
+            <th>تعداد</th>
+            <th>قیمت واحد</th>
+            <th>جمع</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of invoice.items">
+            <td>{{ item.productName }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price | number:'1.0-0' }} تومان</td>
+            <td>{{ (item.price * item.quantity) | number:'1.0-0' }} تومان</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="invoice-totals">
+      <div class="row">
+        <span>جمع محصولات:</span>
+        <span>{{ invoice.subtotal | number:'1.0-0' }} تومان</span>
+      </div>
+      <div class="row">
+        <span>هزینه ارسال:</span>
+        <span>{{ invoice.shippingCost | number:'1.0-0' }} تومان</span>
+      </div>
+      <div class="row total">
+        <span>مبلغ قابل پرداخت:</span>
+        <span>{{ invoice.totalAmount | number:'1.0-0' }} تومان</span>
+      </div>
+    </div>
+
+    <button pButton type="button" label="پرداخت فاکتور" icon="pi pi-lock" 
+            class="p-button-success pay-btn" 
+            [loading]="processing"
+            (click)="proceedToPayment()"></button>
+  </div>
+</div>
