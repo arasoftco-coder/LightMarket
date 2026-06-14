@@ -1,5 +1,8 @@
 namespace LampEcommerce.Application.DTOs;
 
+using System.Linq;
+using System.Collections.Generic;
+
 public class UserDto
 {
     public int Id { get; set; }
@@ -114,4 +117,45 @@ public class InvoiceAuditLogDto
     public string ChangedBy { get; set; } = string.Empty;
     public DateTime ChangedAt { get; set; }
     public string Reason { get; set; } = string.Empty;
+}
+
+public class CartItemDto
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public DateTime AddedAt { get; set; }
+    
+    public ProductDto? Product { get; set; }
+}
+
+public class CartDto
+{
+    public int UserId { get; set; }
+    public ICollection<CartItemDto> Items { get; set; } = new List<CartItemDto>();
+    public int TotalCount => Items.Sum(i => i.Quantity);
+    public decimal TotalAmount => Items.Sum(i => i.UnitPrice * i.Quantity);
+}
+
+public class TicketDto
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string Status { get; set; } = "Open";
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    
+    public UserDto? User { get; set; }
+}
+
+public class SmsTemplateDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Template { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
 }
