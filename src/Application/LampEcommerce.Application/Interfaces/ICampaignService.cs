@@ -4,9 +4,12 @@ namespace LampEcommerce.Application.Interfaces;
 
 public interface ICampaignService
 {
-    Task<IEnumerable<CampaignDto>> GetActiveCampaignsAsync();
-    Task<CampaignDto?> GetCampaignBySlugAsync(string slug);
-    Task<CampaignDto?> GetCampaignByIdAsync(int campaignId);
-    Task<IEnumerable<CampaignProductDto>> GetCampaignProductsAsync(int campaignId);
-    Task<bool> ValidateCampaignAccessAsync(int campaignId, int userId);
+    Task<CampaignDto?> GetActiveCampaign();
+    Task<CampaignDto?> GetCampaignBySlug(string slug);
+    Task<List<CampaignProductDto>> GetCampaignProducts(int campaignId);
+    Task<bool> ValidateCampaignAccess(int campaignId, int userId);
+    Task<IEnumerable<CampaignDto>> GetAllCampaigns();
+    Task<CampaignDto?> CreateCampaign(string name, string slug, DateTime startDate, DateTime endDate, bool isActive);
+    Task<CampaignDto?> UpdateCampaign(int id, string name, string slug, DateTime startDate, DateTime endDate, bool isActive);
+    Task<object?> GetCampaignReport(int campaignId);
 }

@@ -1,11 +1,14 @@
-using LampEcommerce.Application.DTOs;
-using LampEcommerce.Application.Models;
-
 namespace LampEcommerce.Application.Interfaces;
 
-public interface IScraperService
+public interface IS scraperService
 {
-    Task<ApiResponse<IEnumerable<ProductDto>>> ScrapeProductsAsync(ScrapeProductsRequest request);
-    Task<ApiResponse> UpdatePricesAsync(UpdatePricesRequest request);
-    Task<ApiResponse> UpdateCampaignPricesAsync(int campaignId);
+    Task<List<ProductScrapeResult>> ScrapeFromUrl(int supplierId, string url, Dictionary<string, string> extractionConfig);
+    Task<bool> UpdateCampaignPrices(int campaignId);
+}
+
+public class ProductScrapeResult
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
 }

@@ -1,13 +1,11 @@
 using LampEcommerce.Application.DTOs;
-using LampEcommerce.Application.Models;
 
 namespace LampEcommerce.Application.Interfaces;
 
 public interface ICartService
 {
-    Task<ApiResponse> AddToCartAsync(int userId, AddToCartRequest request);
-    Task<ApiResponse> UpdateQuantityAsync(int userId, UpdateCartQuantityRequest request);
-    Task<ApiResponse> RemoveFromCartAsync(int userId, int cartItemId);
-    Task<IEnumerable<OrderItemDto>> GetCartAsync(int userId);
-    Task<ApiResponse> ClearCartAsync(int userId);
+    Task<CartItemDto?> AddToCart(int userId, int campaignId, int productId, int quantity);
+    Task<CartItemDto?> UpdateQuantity(int userId, int cartItemId, int quantity);
+    Task<bool> RemoveFromCart(int userId, int cartItemId);
+    Task<CartDto?> GetCart(int userId, int campaignId);
 }

@@ -1,13 +1,11 @@
 using LampEcommerce.Application.DTOs;
-using LampEcommerce.Application.Models;
 
 namespace LampEcommerce.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponse> RegisterAsync(RegisterRequest request);
-    Task<AuthResponse> LoginAsync(LoginRequest request);
-    Task<OtpResponse> GenerateOtpAsync(GenerateOtpRequest request);
-    Task<AuthResponse> VerifyOtpAsync(VerifyOtpRequest request);
-    Task<bool> SetPasswordAsync(int userId, string password);
+    Task<UserDto?> GenerateOTP(string phoneNumber);
+    Task<UserDto?> VerifyOTP(string phoneNumber, string code);
+    Task<UserDto> Register(string phoneNumber, string fullName);
+    Task<bool> SetPassword(int userId, string password);
 }
