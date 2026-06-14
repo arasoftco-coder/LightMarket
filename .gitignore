@@ -1,53 +1,57 @@
-```
-# Build artifacts and binaries
-*.dll
-*.exe
-*.pdb
-*.so
-*.dylib
-*.class
-*.o
-*.obj
-*.out
-
-# Dependencies
-packages/
+# Node
 node_modules/
-**/bin/
-**/obj/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Logs
-*.log
+# Angular
+dist/
+www/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+*.dll
+*.pdb
+*.exe
 
 # Environment
 .env
 .env.local
-*.env.*
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Editors
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Test and coverage
+# Testing
 coverage/
-htmlcov/
-*.coverage
-.testcoverage
+.nyc_output/
 
-# Distribution / packaging
-dist/
-build/
-*.zip
-*.tar.gz
-*.nupkg
-
-# ASP.NET Core
-**/wwwroot/
-**/appsettings*.json
-```
+# Temporary files
+tmp/
+temp/

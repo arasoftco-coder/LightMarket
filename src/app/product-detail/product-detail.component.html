@@ -1,0 +1,92 @@
+<div class="product-detail-container" *ngIf="!isLoading && product; else loading">
+  <div class="product-grid">
+    <!-- Gallery Section -->
+    <div class="product-gallery">
+      <div class="main-image">
+        <img [src]="mainImage" [alt]="product.name" />
+      </div>
+      <div class="thumbnail-list" *ngIf="product.images.length > 1">
+        <div 
+          *ngFor="let img of product.images; let i = index"
+          class="thumbnail"
+          [class.active]="i === selectedImageIndex"
+          (click)="selectImage(i)"
+        >
+          <img [src]="img" [alt]="product.name" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Section -->
+    <div class="product-details">
+      <h1 class="product-title">{{ product.name }}</h1>
+      
+      <div class="price-section">
+        <div class="final-price" *ngIf="hasDiscount">
+          {{ finalPrice | number }} تومان
+        </div>
+        <div class="original-price" *ngIf="hasDiscount">
+          {{ product.price | number }} تومان
+        </div>
+        <div class="single-price" *ngIf="!hasDiscount">
+          {{ product.price | number }} تومان
+        </div>
+        <span class="discount-badge" *ngIf="hasDiscount">
+          {{ ((product.price - finalPrice) / product.price * 100) | number:'1.0-0' }}% تخفیف
+        </span>
+      </div>
+
+      <div class="stock-status" [class.in-stock]="product.stock > 0" [class.out-of-stock]="product.stock === 0">
+        <span *ngIf="product.stock > 0">موجود در انبار: {{ product.stock }} عدد</span>
+        <span *ngIf="product.stock === 0">ناموجود</span>
+      </div>
+
+      <div class="description">
+        <h3>توضیحات محصول</h3>
+        <p>{{ product.description }}</p>
+      </div>
+
+      <div class="specifications" *ngIf="product.specifications && product.specifications.length">
+        <h3>مشخصات فنی</h3>
+        <table>
+          <tr *ngFor="let spec of product.specifications">
+            <td>{{ spec.key }}</td>
+            <td>{{ spec.value }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="add-to-cart-section">
+        <label>تعداد:</label>
+        <p-inputNumber 
+          [(ngModel)]="quantity" 
+          [min]="1" 
+          [max]="product.stock"
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          inputId="quantity"
+          spinnerMode="horizontal"
+          decrementButtonClass="p-button-secondary"
+          incrementButtonClass="p-button-secondary"
+          class="quantity-input"
+        ></p-inputNumber>
+
+        <button 
+          pButton 
+          type="button" 
+          label="افزودن به سبد خرید" 
+          icon="pi pi-shopping-cart" 
+          [disabled]="product.stock === 0"
+          (click)="addToCart()"
+          class="add-to-cart-btn"
+        ></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-container">
+    <p>در حال بارگذاری اطلاعات محصول...</p>
+  </div>
+</ng-template>

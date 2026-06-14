@@ -1,0 +1,66 @@
+<div class="ticket-detail-container" *ngIf="!isLoading && ticket; else loading">
+  <div class="ticket-header">
+    <div class="ticket-meta">
+      <h1 class="ticket-subject">{{ ticket.subject }}</h1>
+      <div class="ticket-badges">
+        <span class="badge category">{{ ticket.category }}</span>
+        <span class="badge status {{ getStatusClass(ticket.status) }}">
+          {{ getStatusLabel(ticket.status) }}
+        </span>
+        <span class="badge priority {{ getPriorityClass(ticket.priority) }}">
+          اولویت: {{ getPriorityLabel(ticket.priority) }}
+        </span>
+      </div>
+    </div>
+    <div class="ticket-date">
+      تاریخ ایجاد: {{ formatDate(ticket.createdAt) }}
+    </div>
+  </div>
+
+  <div class="messages-container">
+    <div 
+      class="message" 
+      *ngFor="let msg of ticket.messages"
+      [class.user-message]="msg.sender === 'user'"
+      [class.admin-message]="msg.sender === 'admin'"
+    >
+      <div class="message-header">
+        <span class="sender">{{ msg.sender === 'user' ? 'شما' : 'پشتیبانی' }}</span>
+        <span class="date">{{ formatDate(msg.createdAt) }}</span>
+      </div>
+      <div class="message-body">
+        {{ msg.message }}
+      </div>
+    </div>
+  </div>
+
+  <div class="reply-section" *ngIf="ticket.status !== 'closed'">
+    <h3>ارسال پاسخ جدید</h3>
+    <textarea 
+      [(ngModel)]="replyMessage"
+      placeholder="پیام خود را بنویسید..."
+      rows="4"
+      class="reply-input"
+    ></textarea>
+    <button 
+      pButton 
+      type="button" 
+      label="ارسال پاسخ" 
+      icon="pi pi-send"
+      [loading]="isSubmitting"
+      [disabled]="!replyMessage.trim()"
+      (click)="submitReply()"
+      class="submit-reply-btn"
+    ></button>
+  </div>
+
+  <div class="ticket-closed-notice" *ngIf="ticket.status === 'closed'">
+    <p>این تیکت بسته شده است و امکان ارسال پاسخ وجود ندارد.</p>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-container">
+    <p>در حال بارگذاری اطلاعات تیکت...</p>
+  </div>
+</ng-template>
