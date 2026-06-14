@@ -100,6 +100,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.BasePrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Description).HasMaxLength(2000);
 
             // One-to-Many: Product -> CampaignProducts
             entity.HasMany(e => e.CampaignProducts)
