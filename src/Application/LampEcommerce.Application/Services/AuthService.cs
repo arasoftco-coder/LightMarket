@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using LampEcommerce.Application.DTOs;
+using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;

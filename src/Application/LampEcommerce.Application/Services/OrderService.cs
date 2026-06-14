@@ -1,4 +1,5 @@
 using LampEcommerce.Application.DTOs;
+using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Models;
 
 namespace LampEcommerce.Application.Services;
