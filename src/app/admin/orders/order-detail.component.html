@@ -1,0 +1,51 @@
+<div class="order-detail-page">
+  <h2>جزئیات سفارش #{{ orderId }}</h2>
+  
+  <div class="order-section">
+    <h3>اطلاعات سفارش</h3>
+    <div class="info-grid">
+      <div><strong>وضعیت:</strong> {{ order?.status }}</div>
+      <div><strong>مبلغ کل:</strong> {{ order?.totalAmount | number }} تومان</div>
+      <div><strong>تاریخ ثبت:</strong> {{ order?.createdAt | date:'full' }}</div>
+    </div>
+  </div>
+
+  <div class="order-section">
+    <h3>اقلام سفارش</h3>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>محصول</th>
+          <th>تعداد</th>
+          <th>قیمت واحد</th>
+          <th>جمع</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of orderItems">
+          <td>{{ item.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.price | number }} تومان</td>
+          <td>{{ item.quantity * item.price | number }} تومان</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="order-section" *ngIf="order?.status === 'PaymentPending'">
+    <h3>تأیید پرداخت</h3>
+    <div class="action-form">
+      <input type="text" [(ngModel)]="trackingCode" placeholder="کد رهگیری پرداخت" />
+      <button (click)="confirmPayment()" class="btn-primary">تأیید پرداخت</button>
+    </div>
+  </div>
+
+  <div class="order-section" *ngIf="order?.status === 'PaymentConfirmed'">
+    <h3>اطلاعات ارسال</h3>
+    <div class="action-form">
+      <input type="text" [(ngModel)]="shippingCompany" placeholder="شرکت پستی" />
+      <input type="text" [(ngModel)]="trackingNumber" placeholder="کد رهگیری مرسوله" />
+      <button (click)="updateShipping()" class="btn-primary">ثبت اطلاعات ارسال</button>
+    </div>
+  </div>
+</div>

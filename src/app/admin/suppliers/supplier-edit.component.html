@@ -1,0 +1,27 @@
+<div class="supplier-edit-page">
+  <h2>{{ isEdit ? 'ویرایش تأمین‌کننده' : 'ایجاد تأمین‌کننده جدید' }}</h2>
+  <form (ngSubmit)="saveSupplier()" class="supplier-form">
+    <div class="form-group">
+      <label>نام تأمین‌کننده:</label>
+      <input type="text" [(ngModel)]="supplier.name" name="name" required />
+    </div>
+    <div class="form-group">
+      <label>وب‌سایت:</label>
+      <input type="url" [(ngModel)]="supplier.website" name="website" />
+    </div>
+    <div class="form-group">
+      <label>اطلاعات تماس:</label>
+      <textarea [(ngModel)]="supplier.contactInfo" name="contactInfo" rows="3"></textarea>
+    </div>
+    <div class="form-group checkbox-group">
+      <label>
+        <input type="checkbox" [(ngModel)]="supplier.requiresTrackingCode" name="requiresTrackingCode" />
+        نیاز به کد رهگیری پرداخت
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">{{ isEdit ? 'ذخیره تغییرات' : 'ایجاد تأمین‌کننده' }}</button>
+      <button type="button" routerLink="/admin/suppliers" class="btn-secondary">انصراف</button>
+    </div>
+  </form>
+</div>

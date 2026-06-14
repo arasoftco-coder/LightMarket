@@ -1,0 +1,37 @@
+<div class="excel-import-page">
+  <h2>واردات محصولات از اکسل</h2>
+  
+  <div class="upload-section">
+    <input type="file" (change)="onFileSelected($event)" accept=".xlsx,.xls" />
+    <button (click)="uploadFile()" [disabled]="!selectedFile" class="btn-primary">آپلود و پردازش</button>
+  </div>
+
+  <div class="preview-section" *ngIf="matchResults.length > 0">
+    <h3>پیش‌نمایش همسان‌سازی</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>نام در اکسل</th>
+          <th>محصول پیشنهادی</th>
+          <th>درصد اطمینان</th>
+          <th>تأیید</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let match of matchResults">
+          <td>{{ match.excelName }}</td>
+          <td>{{ match.matchedProduct || 'بدون تطابق' }}</td>
+          <td>
+            <span [class.low-confidence]="match.confidence < 70">
+              {{ match.confidence }}%
+            </span>
+          </td>
+          <td>
+            <input type="checkbox" [(ngModel)]="match.confirmed" [disabled]="match.confidence < 70" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button (click)="confirmImport()" class="btn-success">تأیید نهایی و واردات</button>
+  </div>
+</div>

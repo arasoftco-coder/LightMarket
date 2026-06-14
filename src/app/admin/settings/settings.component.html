@@ -1,0 +1,51 @@
+<div class="settings-page">
+  <h2>تنظیمات سیستم</h2>
+  
+  <form (ngSubmit)="saveSettings()" class="settings-form">
+    <div class="settings-section">
+      <h3>تنظیمات پیامک</h3>
+      <div class="form-group">
+        <label>API Key:</label>
+        <input type="text" [(ngModel)]="settings.smsApiKey" name="smsApiKey" />
+      </div>
+      <div class="form-group">
+        <label>شناسه فرستنده:</label>
+        <input type="text" [(ngModel)]="settings.senderId" name="senderId" />
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>تنظیمات درگاه پرداخت</h3>
+      <div class="form-group">
+        <label>Merchant ID:</label>
+        <input type="text" [(ngModel)]="settings.paymentMerchantId" name="paymentMerchantId" />
+      </div>
+      <div class="form-group">
+        <label>Callback URL:</label>
+        <input type="text" [(ngModel)]="settings.callbackUrl" name="callbackUrl" />
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>لینک جادویی پرداخت</h3>
+      <div class="form-group">
+        <label>مدت اعتبار (دقیقه):</label>
+        <input type="number" [(ngModel)]="settings.magicLinkExpiry" name="magicLinkExpiry" />
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>محتوای فوتر</h3>
+      <div class="form-group">
+        <label>لینک‌ها:</label>
+        <textarea [(ngModel)]="settings.footerLinks" name="footerLinks" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>اطلاعات تماس:</label>
+        <textarea [(ngModel)]="settings.contactInfo" name="contactInfo" rows="3"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary">ذخیره تنظیمات</button>
+  </form>
+</div>

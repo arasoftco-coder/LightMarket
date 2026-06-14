@@ -1,0 +1,41 @@
+<div class="orders-page">
+  <div class="page-header">
+    <h2>مدیریت سفارشات</h2>
+    <div class="filters">
+      <button (click)="filterByStatus('')" [class.active]="!currentFilter">همه</button>
+      <button (click)="filterByStatus('PaymentPending')" [class.active]="currentFilter === 'PaymentPending'">در انتظار پرداخت</button>
+      <button (click)="filterByStatus('PaymentConfirmed')" [class.active]="currentFilter === 'PaymentConfirmed'">پرداخت شده</button>
+      <button (click)="filterByStatus('Shipped')" [class.active]="currentFilter === 'Shipped'">ارسال شده</button>
+    </div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>شماره سفارش</th>
+        <th>کاربر</th>
+        <th>کمپین</th>
+        <th>مبلغ کل</th>
+        <th>وضعیت</th>
+        <th>تاریخ</th>
+        <th>عملیات</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>#{{ order.id }}</td>
+        <td>کاربر {{ order.userId }}</td>
+        <td>کمپین {{ order.campaignId }}</td>
+        <td>{{ order.totalAmount | number }} تومان</td>
+        <td>
+          <span class="status-badge" [class]="'status-' + order.status">
+            {{ getStatusLabel(order.status) }}
+          </span>
+        </td>
+        <td>{{ order.createdAt | date:'1403/02/01' }}</td>
+        <td>
+          <button routerLink="/admin/orders/{{order.id}}" class="btn-sm">مشاهده</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

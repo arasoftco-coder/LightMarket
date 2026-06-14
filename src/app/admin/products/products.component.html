@@ -1,0 +1,29 @@
+<div class="products-page">
+  <div class="page-header">
+    <h2>مدیریت محصولات</h2>
+    <div class="actions">
+      <button (click)="openImportModal()" class="btn-secondary">واردات از اکسل</button>
+      <button (click)="scrapeProducts()" class="btn-primary">اسکرپ از تأمین‌کننده</button>
+    </div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>نام محصول</th>
+        <th>دسته‌بندی</th>
+        <th>قیمت پایه</th>
+        <th>عملیات</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let product of products">
+        <td>{{ product.name }}</td>
+        <td>{{ product.category }}</td>
+        <td>{{ product.price | number }} تومان</td>
+        <td>
+          <button class="btn-sm">ویرایش</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

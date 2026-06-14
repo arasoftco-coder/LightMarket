@@ -1,0 +1,35 @@
+<div class="campaigns-page">
+  <div class="page-header">
+    <h2>مدیریت کمپین‌ها</h2>
+    <button routerLink="/admin/campaigns/new" class="btn-primary">کمپین جدید</button>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>نام کمپین</th>
+        <th>تأمین‌کننده</th>
+        <th>تاریخ شروع</th>
+        <th>تاریخ پایان</th>
+        <th>وضعیت</th>
+        <th>عملیات</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let campaign of campaigns">
+        <td>{{ campaign.name }}</td>
+        <td>تأمین‌کننده {{ campaign.supplierId }}</td>
+        <td>{{ campaign.startDate | date:'1403/02/01' }}</td>
+        <td>{{ campaign.endDate | date:'1403/03/01' }}</td>
+        <td>
+          <span class="status-badge" [class.active]="campaign.status === 'Active'">
+            {{ campaign.status === 'Active' ? 'فعال' : 'غیرفعال' }}
+          </span>
+        </td>
+        <td>
+          <button routerLink="/admin/campaigns/edit/{{campaign.id}}" class="btn-sm">ویرایش</button>
+          <button class="btn-sm btn-secondary">گزارش</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

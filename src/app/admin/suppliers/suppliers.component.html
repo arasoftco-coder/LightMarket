@@ -1,0 +1,28 @@
+<div class="suppliers-page">
+  <div class="page-header">
+    <h2>مدیریت تأمین‌کنندگان</h2>
+    <button routerLink="/admin/suppliers/new" class="btn-primary">تأمین‌کننده جدید</button>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>نام تأمین‌کننده</th>
+        <th>وب‌سایت</th>
+        <th>اطلاعات تماس</th>
+        <th>نیاز به کد رهگیری</th>
+        <th>عملیات</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let supplier of suppliers">
+        <td>{{ supplier.name }}</td>
+        <td>{{ supplier.website }}</td>
+        <td>{{ supplier.contactInfo }}</td>
+        <td>{{ supplier.requiresTrackingCode ? 'بله' : 'خیر' }}</td>
+        <td>
+          <button routerLink="/admin/suppliers/edit/{{supplier.id}}" class="btn-sm">ویرایش</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

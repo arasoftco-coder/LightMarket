@@ -1,0 +1,29 @@
+<div class="campaign-edit-page">
+  <h2>{{ isEdit ? 'ویرایش کمپین' : 'ایجاد کمپین جدید' }}</h2>
+  <form (ngSubmit)="saveCampaign()" class="campaign-form">
+    <div class="form-group">
+      <label>نام کمپین:</label>
+      <input type="text" [(ngModel)]="campaign.name" name="name" required />
+    </div>
+    <div class="form-group">
+      <label>تأمین‌کننده:</label>
+      <select [(ngModel)]="campaign.supplierId" name="supplierId">
+        <option *ngFor="let supplier of suppliers" [value]="supplier.id">{{ supplier.name }}</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>تاریخ شروع:</label>
+        <input type="date" [(ngModel)]="campaign.startDate" name="startDate" />
+      </div>
+      <div class="form-group">
+        <label>تاریخ پایان:</label>
+        <input type="date" [(ngModel)]="campaign.endDate" name="endDate" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">{{ isEdit ? 'ذخیره تغییرات' : 'ایجاد کمپین' }}</button>
+      <button type="button" routerLink="/admin/campaigns" class="btn-secondary">انصراف</button>
+    </div>
+  </form>
+</div>
