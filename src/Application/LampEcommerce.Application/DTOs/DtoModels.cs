@@ -160,3 +160,15 @@ public class SmsTemplateDto
     public string Template { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 }
+
+public class CampaignReportDto
+{
+    public int CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
+    public int TotalOrders { get; set; }
+    public int TotalUsers { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal TotalDiscount { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+}
