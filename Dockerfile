@@ -1,31 +1,26 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
+# Copy solution file and restore dependencies
+COPY LampEcommerce.sln .
+COPY src/Domain/Domain.csproj src/Domain/
+COPY src/Application/Application.csproj src/Application/
+COPY src/Infrastructure/Infrastructure.csproj src/Infrastructure/
+COPY src/WebAPI/WebAPI.csproj src/WebAPI/
+
+RUN dotnet restore "src/WebAPI/WebAPI.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/src/WebAPI"
+RUN dotnet publish "WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
 
-# Copy package files
-COPY src/app/package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY src/app/ ./
-
-# Build the application
-RUN npm run build -- --configuration production
-
-# Production stage
-FROM nginx:alpine
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built assets from build stage
-COPY --from=build /app/dist/browser /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "WebAPI.dll"]
