@@ -1,0 +1,38 @@
+<div class="home-container">
+  <header class="page-header">
+    <h1>کمپین فعال</h1>
+    <p *ngIf="campaign">{{ campaign.title }}</p>
+  </header>
+
+  <div *ngIf="loading" class="loading">
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <div *ngIf="!loading && products.length === 0" class="no-products">
+    <p>محصولی یافت نشد.</p>
+  </div>
+
+  <div class="products-grid">
+    <div *ngFor="let product of products" class="product-card">
+      <img [src]="product.imageUrl || 'assets/placeholder.png'" [alt]="product.name" class="product-image">
+      <div class="product-info">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-price">
+          {{ product.price | number:'1.0-0' }} تومان
+          <span *ngIf="product.discountPercent" class="discount-badge">
+            {{ product.discountPercent }}% تخفیف
+          </span>
+        </p>
+        <p *ngIf="product.stock > 0" class="stock-status in-stock">موجود در انبار</p>
+        <p *ngIf="product.stock === 0" class="stock-status out-of-stock">ناموجود</p>
+        
+        <button 
+          (click)="addToCart(product)" 
+          [disabled]="product.stock === 0"
+          class="add-to-cart-btn">
+          افزودن به سبد خرید
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<header class="main-header">
+  <div class="header-container">
+    <div class="logo" (click)="navigateTo('')">
+      <h2>لایت مارکت</h2>
+    </div>
+
+    <nav class="main-nav">
+      <a (click)="navigateTo('')" class="nav-link">خانه</a>
+      
+      <a (click)="navigateTo('cart')" class="nav-link cart-link">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+      </a>
+
+      <ng-container *ngIf="!isLoggedIn; else loggedIn">
+        <button (click)="navigateTo('auth')" class="login-btn">ورود / ثبت‌نام</button>
+      </ng-container>
+
+      <ng-template #loggedIn>
+        <button (click)="navigateTo('panel/profile')" class="profile-btn">پنل کاربری</button>
+        <button (click)="logout()" class="logout-btn">خروج</button>
+      </ng-template>
+    </nav>
+  </div>
+</header>

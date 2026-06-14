@@ -1,0 +1,43 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 class="auth-title">ورود / ثبت‌نام</h2>
+
+    <!-- Step 1: Phone Number -->
+    <div *ngIf="step === 'phone'">
+      <p class="auth-description">شماره موبایل خود را وارد کنید</p>
+      
+      <input 
+        type="tel" 
+        [(ngModel)]="phoneNumber" 
+        placeholder="09xxxxxxxxx"
+        class="auth-input"
+        [disabled]="loading">
+      
+      <button (click)="sendOtp()" [disabled]="loading" class="auth-btn">
+        {{ loading ? 'در حال ارسال...' : 'ارسال کد تأیید' }}
+      </button>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div *ngIf="step === 'otp'">
+      <p class="auth-description">کد 5 رقمی ارسال شده را وارد کنید</p>
+      
+      <input 
+        type="text" 
+        [(ngModel)]="otpCode" 
+        placeholder="*****"
+        maxlength="5"
+        class="auth-input"
+        [disabled]="loading">
+      
+      <button (click)="verifyOtp()" [disabled]="loading" class="auth-btn">
+        {{ loading ? 'در حال بررسی...' : 'تأیید و ورود' }}
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="auth-error">
+      {{ error }}
+    </div>
+  </div>
+</div>

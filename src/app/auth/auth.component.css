@@ -1,0 +1,77 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 20px;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-medium);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-title {
+  font-size: 1.8rem;
+  color: var(--text-color);
+  margin-bottom: 8px;
+}
+
+.auth-description {
+  color: var(--text-light);
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-small);
+  font-size: 1.1rem;
+  text-align: center;
+  direction: ltr;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-small);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.auth-btn:disabled {
+  background: var(--text-light);
+  cursor: not-allowed;
+}
+
+.auth-error {
+  margin-top: 16px;
+  padding: 12px;
+  background: #ffebee;
+  color: var(--danger-color);
+  border-radius: var(--radius-small);
+  font-size: 0.9rem;
+}
