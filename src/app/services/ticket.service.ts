@@ -2,27 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TicketService {
-  private apiUrl = '/api/tickets';
-
   constructor(private http: HttpClient) {}
-
-  createTicket(ticketData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, ticketData);
-  }
-
-  getUserTickets(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/user/${userId}`);
-  }
-
-  getTicketDetails(ticketId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${ticketId}`);
-  }
-
-  updateTicketStatus(ticketId: number, status: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${ticketId}/status`, { status });
-  }
+  createTicket(data: any): Observable<any> { return this.http.post<any>('/api/tickets', data); }
+  getUserTickets(): Observable<any> { return this.http.get<any>('/api/tickets'); }
+  getTicketById(id: number): Observable<any> { return this.http.get<any>(`/api/tickets/${id}`); }
+  replyToTicket(id: number, message: string): Observable<any> { return this.http.post<any>(`/api/tickets/${id}/reply`, { message }); }
 }

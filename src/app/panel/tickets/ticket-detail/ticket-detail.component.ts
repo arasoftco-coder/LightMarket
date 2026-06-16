@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TicketService } from '../../../services/ticket.service';
 
@@ -23,7 +24,7 @@ interface Ticket {
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ticket-detail.component.html',
   styleUrls: ['./ticket-detail.component.css']
 })
@@ -49,11 +50,11 @@ export class TicketDetailComponent implements OnInit {
     this.isLoading = true;
     // TODO: Replace with actual API call
     this.ticketService.getTicketById(id).subscribe({
-      next: (ticket) => {
-        this.ticket = ticket;
+      next: (data: any) => {
+        this.ticket = data;
         this.isLoading = false;
       },
-      error: () => {
+      error: (err: any) => {
         this.isLoading = false;
       }
     });
@@ -65,12 +66,12 @@ export class TicketDetailComponent implements OnInit {
     this.isSubmitting = true;
     // TODO: Replace with actual API call
     this.ticketService.replyToTicket(this.ticket.id, this.replyMessage).subscribe({
-      next: () => {
+      next: (data: any) => {
         this.replyMessage = '';
         this.loadTicket(this.ticket!.id);
         this.isSubmitting = false;
       },
-      error: () => {
+      error: (err: any) => {
         this.isSubmitting = false;
       }
     });

@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// Placeholder service - will be implemented later
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
 import { DialogModule } from 'primeng/dialog';
+import { TagModule } from 'primeng/tag';
 
 interface Ticket {
   id: number;
@@ -20,7 +20,7 @@ interface Ticket {
 @Component({
   selector: 'app-tickets',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputTextareaModule, DropdownModule, DialogModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputTextareaModule, DropdownModule, DialogModule, TagModule],
   templateUrl: './tickets.component.html',
   styleUrls: ['./tickets.component.css']
 })
@@ -72,4 +72,6 @@ export class TicketsComponent implements OnInit {
     // TODO: Implement ticket detail view
     alert('نمایش جزئیات تیکت: ' + ticket.subject);
   }
+
+  getCategoryFa(cat: string): string { return cat === 'General' ? 'عمومی' : cat; }
 }
