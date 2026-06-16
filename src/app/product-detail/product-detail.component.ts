@@ -49,10 +49,10 @@ export class ProductDetailComponent implements OnInit {
     // TODO: Replace with actual API call to get product details
     // For now, fetch from active campaign products
     this.campaignService.getActiveCampaign().subscribe({
-      next: (campaign) => {
+      next: (campaign: any) => {
         this.campaignService.getCampaignProducts(campaign.id).subscribe({
-          next: (products) => {
-            this.product = products.find(p => p.id === id) || null;
+          next: (products: any) => {
+            this.product = products.find((p: any) => p.id === id) || null;
             this.isLoading = false;
           },
           error: () => {
@@ -72,7 +72,7 @@ export class ProductDetailComponent implements OnInit {
         next: () => {
           alert('محصول به سبد خرید اضافه شد');
         },
-        error: (err) => {
+        error: (err: any) => {
           alert('خطا در افزودن به سبد خرید');
         }
       });

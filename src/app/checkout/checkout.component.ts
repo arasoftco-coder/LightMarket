@@ -68,25 +68,25 @@ export class CheckoutComponent implements OnInit {
 
   loadAddresses(): void {
     this.userService.getAddresses().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.addresses = data;
         if (data.length > 0) {
           this.selectedAddressId = data[0].id;
         }
       },
-      error: (err) => console.error('Error loading addresses:', err)
+      error: (err: any) => console.error('Error loading addresses:', err)
     });
   }
 
   loadCartSummary(): void {
     const campaignId = 1; // TODO: Get from context
     this.cartService.getCart(campaignId).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.cartItems = data.items || [];
         this.subtotal = data.totalAmount || 0;
         this.calculateTotal();
       },
-      error: (err) => console.error('Error loading cart:', err)
+      error: (err: any) => console.error('Error loading cart:', err)
     });
   }
 
@@ -112,13 +112,13 @@ export class CheckoutComponent implements OnInit {
     };
 
     this.userService.addAddress(addressData).subscribe({
-      next: (newAddr) => {
+      next: (newAddr: any) => {
         this.addresses.push(newAddr);
         this.selectedAddressId = newAddr.id;
         this.showNewAddressForm = false;
         this.newAddress = {};
       },
-      error: (err) => console.error('Error adding address:', err)
+      error: (err: any) => console.error('Error adding address:', err)
     });
   }
 
@@ -140,12 +140,12 @@ export class CheckoutComponent implements OnInit {
 
     this.loading = true;
     this.orderService.createOrder(orderData).subscribe({
-      next: (order) => {
+      next: (order: any) => {
         this.loading = false;
         // Redirect to payment or success page
         this.router.navigate(['/payment', order.id]);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         console.error('Error creating order:', err);
         alert('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');

@@ -35,13 +35,13 @@ export class OrdersComponent implements OnInit {
 
   loadOrders(): void {
     this.orderService.getUserOrders().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.orders = data.map((order: any) => ({
           ...order,
           statusFa: this.getStatusFa(order.status)
         }));
       },
-      error: (err) => console.error('Error loading orders:', err)
+      error: (err: any) => console.error('Error loading orders:', err)
     });
   }
 

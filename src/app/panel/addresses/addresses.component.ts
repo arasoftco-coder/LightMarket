@@ -36,10 +36,10 @@ export class AddressesComponent implements OnInit {
 
   loadAddresses(): void {
     this.userService.getAddresses().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.addresses = data;
       },
-      error: (err) => console.error('Error loading addresses:', err)
+      error: (err: any) => console.error('Error loading addresses:', err)
     });
   }
 
@@ -67,7 +67,7 @@ export class AddressesComponent implements OnInit {
           this.loadAddresses();
           this.showDialog = false;
         },
-        error: (err) => console.error('Error updating address:', err)
+        error: (err: any) => console.error('Error updating address:', err)
       });
     } else {
       // Add new
@@ -76,7 +76,7 @@ export class AddressesComponent implements OnInit {
           this.loadAddresses();
           this.showDialog = false;
         },
-        error: (err) => console.error('Error adding address:', err)
+        error: (err: any) => console.error('Error adding address:', err)
       });
     }
   }
@@ -88,7 +88,7 @@ export class AddressesComponent implements OnInit {
       next: () => {
         this.addresses = this.addresses.filter(a => a.id !== id);
       },
-      error: (err) => console.error('Error deleting address:', err)
+      error: (err: any) => console.error('Error deleting address:', err)
     });
   }
 }

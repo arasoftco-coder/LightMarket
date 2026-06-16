@@ -43,12 +43,12 @@ export class CartComponent implements OnInit {
     // Assuming campaignId is stored in localStorage or retrieved from route
     const campaignId = 1; // TODO: Get from actual context
     this.cartService.getCart(campaignId).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.cartItems = data.items || [];
         this.totalAmount = data.totalAmount || 0;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading cart:', err);
         this.loading = false;
       }
@@ -64,7 +64,7 @@ export class CartComponent implements OnInit {
         item.totalPrice = item.price * newQuantity;
         this.calculateTotal();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error updating quantity:', err);
       }
     });
@@ -78,7 +78,7 @@ export class CartComponent implements OnInit {
         this.cartItems = this.cartItems.filter(item => item.id !== itemId);
         this.calculateTotal();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error removing item:', err);
       }
     });

@@ -27,10 +27,10 @@ export class ProfileComponent implements OnInit {
 
   loadProfile(): void {
     this.userService.getProfile().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.user = data;
       },
-      error: (err) => console.error('Error loading profile:', err)
+      error: (err: any) => console.error('Error loading profile:', err)
     });
   }
 
@@ -40,7 +40,7 @@ export class ProfileComponent implements OnInit {
         this.editing = false;
         alert('پروفایل با موفقیت به‌روزرسانی شد.');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error updating profile:', err);
         alert('خطا در به‌روزرسانی پروفایل.');
       }

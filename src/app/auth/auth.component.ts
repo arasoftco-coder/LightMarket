@@ -38,7 +38,7 @@ export class AuthComponent {
         this.step = 'otp';
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'خطا در ارسال کد تأیید';
         this.loading = false;
       }
@@ -58,7 +58,7 @@ export class AuthComponent {
       next: () => {
         this.router.navigate(['']);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'کد تأیید نامعتبر است';
         this.loading = false;
       }
@@ -79,7 +79,7 @@ export class AuthComponent {
         this.step = 'otp';
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.error = 'خطا در ثبت‌نام';
         this.loading = false;
       }

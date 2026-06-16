@@ -49,11 +49,11 @@ export class MagicLinkCheckoutComponent implements OnInit {
 
   validateAndLoadInvoice(): void {
     this.orderService.validateMagicLink(this.token!).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.invoice = data;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error validating magic link:', err);
         if (err.status === 401 || err.status === 403) {
           this.error = 'لینک پرداخت منقضی شده یا نامعتبر است.';
