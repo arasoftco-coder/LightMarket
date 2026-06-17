@@ -18,6 +18,10 @@ var builder = WebApplication.CreateBuilder(args);
 var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 
+var smsSettings = new SmsSettings();
+builder.Configuration.GetSection("SmsSettings").Bind(smsSettings);
+builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("SmsSettings"));
+
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -31,7 +35,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();
-builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<ISmsService, KavehNegarSmsService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 
 // JWT Authentication
