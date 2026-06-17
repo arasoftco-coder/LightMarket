@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CartService } from '../../services/cart.service';
+import { CartService } from '../services/cart.service';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -40,9 +40,7 @@ export class CartComponent implements OnInit {
 
   loadCart(): void {
     this.loading = true;
-    // Assuming campaignId is stored in localStorage or retrieved from route
-    const campaignId = 1; // TODO: Get from actual context
-    this.cartService.getCart(campaignId).subscribe({
+    this.cartService.getCart().subscribe({
       next: (data: any) => {
         this.cartItems = data.items || [];
         this.totalAmount = data.totalAmount || 0;

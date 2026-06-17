@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TicketService } from '../../../services/ticket.service';
+import { ButtonModule } from 'primeng/button';
 
 interface TicketMessage {
   id: number;
@@ -24,7 +25,7 @@ interface Ticket {
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ButtonModule],
   templateUrl: './ticket-detail.component.html',
   styleUrls: ['./ticket-detail.component.css']
 })

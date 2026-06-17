@@ -4,12 +4,11 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = '/api/users';
   constructor(private http: HttpClient) {}
-  getProfile(userId: number): Observable<any> { return this.http.get(`${this.apiUrl}/${userId}/profile`); }
-  updateProfile(userId: number, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/${userId}/profile`, data); }
-  getAddresses(userId: number): Observable<any> { return this.http.get(`${this.apiUrl}/${userId}/addresses`); }
-  addAddress(userId: number, address: any): Observable<any> { return this.http.post(`${this.apiUrl}/${userId}/addresses`, address); }
-  updateAddress(addressId: number, address: any): Observable<any> { return this.http.put(`${this.apiUrl}/addresses/${addressId}`, address); }
-  deleteAddress(addressId: number): Observable<any> { return this.http.delete(`${this.apiUrl}/addresses/${addressId}`); }
+  getProfile(): Observable<any> { return this.http.get<any>('/api/user/profile'); }
+  updateProfile(data: any): Observable<any> { return this.http.put<any>('/api/user/profile', data); }
+  getAddresses(): Observable<any> { return this.http.get<any>('/api/user/addresses'); }
+  addAddress(data: any): Observable<any> { return this.http.post<any>('/api/user/addresses', data); }
+  updateAddress(id: number, data: any): Observable<any> { return this.http.put<any>(`/api/user/addresses/${id}`, data); }
+  deleteAddress(id: number): Observable<any> { return this.http.delete<any>(`/api/user/addresses/${id}`); }
 }

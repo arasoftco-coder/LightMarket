@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../services/user.service';
-import { OrderService } from '../../services/order.service';
-import { CartService } from '../../services/cart.service';
+import { UserService } from '../services/user.service';
+import { OrderService } from '../services/order.service';
+import { CartService } from '../services/cart.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
@@ -79,8 +79,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   loadCartSummary(): void {
-    const campaignId = 1; // TODO: Get from context
-    this.cartService.getCart(campaignId).subscribe({
+    this.cartService.getCart().subscribe({
       next: (data: any) => {
         this.cartItems = data.items || [];
         this.subtotal = data.totalAmount || 0;

@@ -8,6 +8,7 @@ using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
 using LampEcommerce.WebAPI.Settings;
 using LampEcommerce.WebAPI.Middleware;
+using LampEcommerce.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +98,10 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
-
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.Configure<LampEcommerce.WebAPI.Settings.JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSettings>>().Value);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -115,9 +119,13 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

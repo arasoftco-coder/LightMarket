@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
   addToCart(product: any): void {
     if (!this.campaign) return;
     
-    this.cartService.addToCart(this.campaign.id, product.id, 1).subscribe({
+    this.cartService.addToCart(product.id, 1).subscribe({
       next: () => {
         alert('محصول به سبد خرید اضافه شد');
       },

@@ -4,8 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { CampaignService } from '../../services/campaign.service';
-import { CartService } from '../../services/cart.service';
+import { CampaignService } from '../services/campaign.service';
+import { CartService } from '../services/cart.service';
 
 interface Product {
   id: number;

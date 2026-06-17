@@ -4,10 +4,9 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private apiUrl = '/api/cart';
   constructor(private http: HttpClient) {}
-  getCart(campaignId: number): Observable<any> { return this.http.get(`${this.apiUrl}/${campaignId}`); }
-  addToCart(campaignId: number, productId: number, quantity: number): Observable<any> { return this.http.post(`${this.apiUrl}/add`, { campaignId, productId, quantity }); }
-  updateQuantity(cartItemId: number, quantity: number): Observable<any> { return this.http.put(`${this.apiUrl}/update/${cartItemId}`, { quantity }); }
-  removeFromCart(cartItemId: number): Observable<any> { return this.http.delete(`${this.apiUrl}/remove/${cartItemId}`); }
+  getCart(): Observable<any> { return this.http.get<any>('/api/cart'); }
+  addToCart(productId: number, qty: number): Observable<any> { return this.http.post<any>('/api/cart', { productId, qty }); }
+  updateQuantity(itemId: number, qty: number): Observable<any> { return this.http.put<any>(`/api/cart/${itemId}`, { qty }); }
+  removeFromCart(itemId: number): Observable<any> { return this.http.delete<any>(`/api/cart/${itemId}`); }
 }

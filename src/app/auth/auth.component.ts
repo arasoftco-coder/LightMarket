@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -74,7 +74,7 @@ export class AuthComponent {
     this.loading = true;
     this.error = '';
     
-    this.authService.register(this.phoneNumber, this.fullName).subscribe({
+    this.authService.register({ phone: this.phoneNumber, fullName: this.fullName }).subscribe({
       next: () => {
         this.step = 'otp';
         this.loading = false;

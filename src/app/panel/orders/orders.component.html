@@ -5,7 +5,7 @@
     <p>هیچ سفارشی ثبت نشده است.</p>
   </div>
 
-  <table *ngIf="orders.length > 0" pTable [value]="orders" class="p-datatable-striped">
+  <p-table *ngIf="orders.length > 0" [value]="orders" styleClass="p-datatable-striped">
     <ng-template pTemplate="header">
       <tr>
         <th>شماره سفارش</th>
@@ -30,7 +30,7 @@
         </td>
       </tr>
     </ng-template>
-  </table>
+  </p-table>
 
   <!-- Order Details Dialog -->
   <div *ngIf="showDetails && selectedOrder" class="details-overlay">

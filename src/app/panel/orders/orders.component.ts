@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OrderService } from '../../../services/order.service';
+import { OrderService } from '../../services/order.service';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
@@ -55,6 +55,18 @@ export class OrdersComponent implements OnInit {
       'Cancelled': 'لغو شده'
     };
     return map[status] || status;
+  }
+
+  getSeverity(status: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | undefined {
+    const map: { [key: string]: 'success' | 'info' | 'warning' | 'danger' | 'secondary' } = {
+      'PaymentPending': 'warning',
+      'PaymentConfirmed': 'success',
+      'Processing': 'info',
+      'Shipped': 'info',
+      'Delivered': 'success',
+      'Cancelled': 'danger'
+    };
+    return map[status] || 'secondary';
   }
 
   viewDetails(order: Order): void {
