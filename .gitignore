@@ -1,1 +1,17 @@
 (empty)
+/dist/light-market
+/.vs/LampEcommerce
+/src/Application/LampEcommerce.Application/bin/Release/net8.0
+/src/Application/LampEcommerce.Application/obj/Debug/net8.0
+/src/Application/LampEcommerce.Application/obj
+/src/Domain/LampEcommerce.Domain/bin/Release/net8.0
+/src/Domain/LampEcommerce.Domain/obj/Debug/net8.0
+/src/Domain/LampEcommerce.Domain/obj
+/src/Infrastructure/LampEcommerce.Infrastructure/bin/Release/net8.0
+/src/Infrastructure/LampEcommerce.Infrastructure/obj/Debug/net8.0
+/src/Infrastructure/LampEcommerce.Infrastructure/obj
+/src/WebAPI/LampEcommerce.WebAPI/bin/Release/net8.0
+/src/WebAPI/LampEcommerce.WebAPI/obj
+/src/WebAPI/LampEcommerce.WebAPI/wwwroot
+/node_modules/.bin
+/node_modules
