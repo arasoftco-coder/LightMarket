@@ -20,26 +20,23 @@ public class KavehNegarSmsService : ISmsService
         _logger = logger;
     }
 
-    public async Task<ApiResponse> SendTemporaryPassword(string receptor, string password)
+    public async Task<bool> SendTemporaryPassword(string mobile, string temporaryPassword)
     {
         try
         {
-            var result = _kavenegarApi.VerifyLookup(receptor, password, KaveNegarTemplate.TemporaryPassword);
-            return result == null
-                ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
-                : new ApiResponse { Success = true };
+            var result = _kavenegarApi.VerifyLookup(mobile, temporaryPassword, KaveNegarTemplate.TemporaryPassword);
+            return result != null;
         }
         catch (Kavenegar.Exceptions.ApiException ex) //return not 200
         {
-            _logger.LogError(ex, "Error sending temporary password SMS to {Receptor}", receptor);
-            return new ApiResponse { Success = false, Message = "Failed to send temporary password SMS." };
+            _logger.LogError(ex, "Error sending temporary password SMS to {Mobile}", mobile);
+            return false;
         }
         catch (Kavenegar.Exceptions.HttpException ex) //something went wrong during the HTTP request
         {
-            _logger.LogError(ex, "Error sending temporary password SMS to {Receptor}", receptor);
-            return new ApiResponse { Success = false, Message = "Failed to connect to Kavenegar server." };
+            _logger.LogError(ex, "Error sending temporary password SMS to {Mobile}", mobile);
+            return false;
         }
-
     }
 
     public async Task<ApiResponse> SendSmsAsync(SendSmsRequest request)
