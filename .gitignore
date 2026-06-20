@@ -85,3 +85,4 @@ Thumbs.db
 /src/WebAPI/LampEcommerce.WebAPI/bin/Release/net8.0
 /src/WebAPI/LampEcommerce.WebAPI/obj
 /src/WebAPI/LampEcommerce.WebAPI/wwwroot
+/src/WebAPI/LampEcommerce.WebAPI/bin/Debug/net8.0
