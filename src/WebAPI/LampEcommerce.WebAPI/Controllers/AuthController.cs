@@ -12,13 +12,33 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly ISmsService _smsService;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, IJwtTokenGenerator jwtTokenGenerator, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, IJwtTokenGenerator jwtTokenGenerator, ISmsService smsService, ILogger<AuthController> logger)
     {
         _authService = authService;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _smsService = smsService;
         _logger = logger;
+    }
+
+    [HttpPost("send-temporary-password")]
+    public async Task<IActionResult> SendTemporaryPassword([FromBody] SendTemporaryPasswordRequest request)
+    {
+        try
+        {
+            var result = await _smsService.SendTemporaryPassword(request.PhoneNumber, request.TemporaryPassword);
+            if (result.Success)
+                return Ok(new { success = true, message = "Temporary password sent successfully" });
+            else
+                return BadRequest(new { success = false, message = result.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending temporary password");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
     }
 
     [HttpPost("send-otp")]
@@ -91,3 +111,4 @@ public class SendOtpRequest { public string PhoneNumber { get; set; } = string.E
 public class VerifyOtpRequest { public string PhoneNumber { get; set; } = string.Empty; public string Code { get; set; } = string.Empty; }
 public class RegisterRequest { public string PhoneNumber { get; set; } = string.Empty; public string FullName { get; set; } = string.Empty; }
 public class SetPasswordRequest { public int UserId { get; set; } public string Password { get; set; } = string.Empty; }
+public class SendTemporaryPasswordRequest { public string PhoneNumber { get; set; } = string.Empty; public string TemporaryPassword { get; set; } = string.Empty; }
