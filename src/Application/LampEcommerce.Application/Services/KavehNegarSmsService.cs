@@ -13,7 +13,7 @@ public class KavehNegarSmsService : ISmsService
     private readonly KavenegarApi _kavenegarApi;
     private readonly ILogger<KavehNegarSmsService> _logger;
 
-    public KavehNegarSmsService(IOptions<SmsSettings> smsSettings, ILogger<KavehNegarSmsService> logger)
+    public KavehNegarSmsService(IOptions<LampEcommerce.Application.Models.SmsSettings> smsSettings, ILogger<KavehNegarSmsService> logger)
     {
         _smsSettings = smsSettings.Value;
         _kavenegarApi = new KavenegarApi(_smsSettings.ApiKey);
