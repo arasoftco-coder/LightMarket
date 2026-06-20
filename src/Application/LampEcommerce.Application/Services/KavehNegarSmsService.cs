@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace LampEcommerce.Application.Services;
 
-public class KavehNegarSmsService 
+public class KavehNegarSmsService : ISmsService
 {
     private readonly SmsSettings _smsSettings;
     private readonly KavenegarApi _kavenegarApi;
@@ -16,6 +16,30 @@ public class KavehNegarSmsService
         _smsSettings = smsSettings.Value;
         _kavenegarApi = new KavenegarApi(_smsSettings.ApiKey);
         _logger = logger;
+    }
+
+    public async Task<ApiResponse> SendSmsAsync(SendSmsRequest request)
+    {
+        try
+        {
+            var result = await _kavenegarApi.Send(request.Receptor, request.Message);
+            return new ApiResponse { Success = true };
+        }
+        catch (Kavenegar.Exceptions.ApiException ex)
+        {
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.Receptor);
+            return new ApiResponse { Success = false, Message = "Failed to send SMS." };
+        }
+        catch (Kavenegar.Exceptions.HttpException ex)
+        {
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.Receptor);
+            return new ApiResponse { Success = false, Message = "Failed to connect to Kavenegar server." };
+        }
+    }
+
+    public Task<IEnumerable<SmsTemplateDto>> GetTemplatesAsync()
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<ApiResponse> SendTemporaryPassword(string receptor, string password)
