@@ -15,3 +15,5 @@
 /src/WebAPI/LampEcommerce.WebAPI/wwwroot
 /node_modules/.bin
 /node_modules
+/.vs/ProjectEvaluation
+/src/Domain/LampEcommerce.Domain/bin/Debug/net8.0
