@@ -29,10 +29,10 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _smsService.SendTemporaryPassword(request.PhoneNumber, request.TemporaryPassword);
-            if (result.Success)
+            if (result)
                 return Ok(new { success = true, message = "Temporary password sent successfully" });
             else
-                return BadRequest(new { success = false, message = result.Message });
+                return BadRequest(new { success = false, message = "Failed to send temporary password" });
         }
         catch (Exception ex)
         {
