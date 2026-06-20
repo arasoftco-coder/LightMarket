@@ -6,7 +6,7 @@ using Microsoft.OpenApi.Models;
 using LampEcommerce.Infrastructure.Data;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
-using LampEcommerce.WebAPI.Settings;
+using LampEcommerce.Application.Models;
 using LampEcommerce.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);

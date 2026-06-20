@@ -23,8 +23,8 @@ public class KavehNegarSmsService : ISmsService
     {
         try
         {
-            // Use VerifyLookup for OTP sending with templates
-            if (request.TemplateId.HasValue && request.TemplateArgs != null)
+            // Use VerifyLookup for template-based SMS (OTP, notifications, etc.)
+            if (!string.IsNullOrEmpty(request.TemplateId?.ToString()) && request.TemplateArgs != null)
             {
                 var lookupArgs = new List<string>(request.TemplateArgs.Values);
                 var result = await _kavenegarApi.VerifyLookup(
@@ -35,32 +35,8 @@ public class KavehNegarSmsService : ISmsService
 
                 if (result != null && result.Return.Status == 200)
                 {
-                    _logger.LogInformation("OTP sent successfully to {PhoneNumber} via Kavenegar VerifyLookup", request.PhoneNumber);
-                    return new ApiResponse
-                    {
-                        Success = true,
-                        Message = "OTP sent successfully"
-                    };
-                }
-                else
-                {
-                    _logger.LogWarning("OTP sending failed to {PhoneNumber}. Status: {Status}", 
-                        request.PhoneNumber, result?.Return.Status);
-                    return new ApiResponse
-                    {
-                        Success = false,
-                        Message = $"OTP sending failed. Status: {result?.Return.Status}"
-                    };
-                }
-            }
-            else
-            {
-                // Fallback to regular SMS send if no template
-                var result = await _kavenegarApi.Send(_smsSettings.SenderNumber, new[] { request.PhoneNumber }, request.Message);
-
-                if (result != null && result.Return.Status == 200)
-                {
-                    _logger.LogInformation("SMS sent successfully to {PhoneNumber} via Kavenegar", request.PhoneNumber);
+                    _logger.LogInformation("SMS sent successfully to {PhoneNumber} via Kavenegar VerifyLookup with template {TemplateId}", 
+                        request.PhoneNumber, request.TemplateId);
                     return new ApiResponse
                     {
                         Success = true,
@@ -78,6 +54,15 @@ public class KavehNegarSmsService : ISmsService
                     };
                 }
             }
+            else
+            {
+                _logger.LogWarning("SMS sending failed: TemplateId and TemplateArgs are required for Kavenegar VerifyLookup");
+                return new ApiResponse
+                {
+                    Success = false,
+                    Message = "TemplateId and TemplateArgs are required for Kavenegar VerifyLookup"
+                };
+            }
         }
         catch (Exception ex)
         {
@@ -93,7 +78,7 @@ public class KavehNegarSmsService : ISmsService
     public async Task<IEnumerable<SmsTemplateDto>> GetTemplatesAsync()
     {
         // Kavenegar doesn't provide a direct API to fetch templates
-        // Return empty list as this is handled in the admin panel
+        // Templates are managed in Kavenegar panel
         return Enumerable.Empty<SmsTemplateDto>();
     }
 }
