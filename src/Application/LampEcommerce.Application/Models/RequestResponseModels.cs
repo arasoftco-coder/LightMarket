@@ -2,6 +2,14 @@ namespace LampEcommerce.Application.Models;
 
 using LampEcommerce.Application.DTOs;
 
+// SMS Settings
+public class SmsSettings
+{
+    public string ApiKey { get; set; } = string.Empty;
+    public string SenderNumber { get; set; } = string.Empty;
+    public int? OtpTemplateId { get; set; }
+}
+
 // Auth Requests
 public class RegisterRequest
 {
@@ -78,6 +86,7 @@ public class SendSmsRequest
     public string PhoneNumber { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public int? TemplateId { get; set; }
+    public Dictionary<string, string>? TemplateArgs { get; set; }
 }
 
 // Scraper Requests

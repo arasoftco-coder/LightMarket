@@ -11,7 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Kavenegar" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
   </ItemGroup>
