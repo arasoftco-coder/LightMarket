@@ -4,5 +4,5 @@ public class SmsSettings
 {
     public string ApiKey { get; set; } = string.Empty;
     public string SenderId { get; set; } = string.Empty;
-    public string ProviderName { get; set; } = "Kavenegar";
+    public string ProviderName { get; set; } = string.Empty;
 }

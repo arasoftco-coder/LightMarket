@@ -2,7 +2,7 @@ using Kavenegar;
 using LampEcommerce.Application.DTOs;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Models;
-using LampEcommerce.WebAPI.Settings;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace LampEcommerce.Application.Services;
