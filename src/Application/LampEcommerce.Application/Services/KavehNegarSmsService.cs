@@ -48,7 +48,12 @@ public class KavehNegarSmsService : ISmsService
         {
             if (request.TemplateId.HasValue)
             {
-                var result = _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, request.TemplateId.Value);
+                // Get template name from TemplateId
+                var templateName = request.TemplateId.Value == 1 
+                    ? KaveNegarTemplate.TemporaryPassword 
+                    : "unknown";
+                
+                var result = _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, templateName);
                 return result == null
                     ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
                     : new ApiResponse { Success = true, Message = "SMS sent successfully." };
