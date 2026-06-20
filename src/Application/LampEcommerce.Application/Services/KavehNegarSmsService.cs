@@ -1,11 +1,13 @@
 using Kavenegar;
 using LampEcommerce.Application.Models;
+using LampEcommerce.Application.Interfaces;
+using LampEcommerce.Application.DTOs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace LampEcommerce.Application.Services;
 
-public class KavehNegarSmsService 
+public class KavehNegarSmsService : ISmsService
 {
     private readonly SmsSettings _smsSettings;
     private readonly KavenegarApi _kavenegarApi;
@@ -38,6 +40,47 @@ public class KavehNegarSmsService
             return new ApiResponse { Success = false, Message = "Failed to connect to Kavenegar server." };
         }
 
+    }
+
+    public async Task<ApiResponse> SendSmsAsync(SendSmsRequest request)
+    {
+        try
+        {
+            if (request.TemplateId.HasValue)
+            {
+                var result = _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, request.TemplateId.Value);
+                return result == null
+                    ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
+                    : new ApiResponse { Success = true, Message = "SMS sent successfully." };
+            }
+            else
+            {
+                var result = _kavenegarApi.Send(_smsSettings.SenderId, request.PhoneNumber, request.Message);
+                return result == null
+                    ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
+                    : new ApiResponse { Success = true, Message = "SMS sent successfully." };
+            }
+        }
+        catch (Kavenegar.Exceptions.ApiException ex)
+        {
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.PhoneNumber);
+            return new ApiResponse { Success = false, Message = "Failed to send SMS." };
+        }
+        catch (Kavenegar.Exceptions.HttpException ex)
+        {
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.PhoneNumber);
+            return new ApiResponse { Success = false, Message = "Failed to connect to Kavenegar server." };
+        }
+    }
+
+    public Task<IEnumerable<SmsTemplateDto>> GetTemplatesAsync()
+    {
+        // Kavenegar does not provide an API to list templates, returning empty list
+        var templates = new List<SmsTemplateDto>
+        {
+            new SmsTemplateDto { Id = 1, Name = "Temporary Password", Template = "کد تایید موقت: {0}", IsActive = true }
+        };
+        return Task.FromResult<IEnumerable<SmsTemplateDto>>(templates);
     }
 
 
