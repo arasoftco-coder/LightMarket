@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace LampEcommerce.Application.Services;
 
-public class KavehNegarSmsService 
+public class KavehNegarSmsService
 {
     private readonly SmsSettings _smsSettings;
     private readonly KavenegarApi _kavenegarApi;
