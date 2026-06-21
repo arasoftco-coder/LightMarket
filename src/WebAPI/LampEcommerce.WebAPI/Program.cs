@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 // Configuration
-var jwtSettings = new JwtSettings();
+var jwtSettings = new LampEcommerce.WebAPI.Settings.JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 
 builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("SmsSettings"));
@@ -103,7 +103,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.Configure<LampEcommerce.WebAPI.Settings.JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSettings>>().Value);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LampEcommerce.WebAPI.Settings.JwtSettings>>().Value);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
