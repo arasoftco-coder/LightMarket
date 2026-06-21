@@ -46,6 +46,11 @@ public class AuthController : ControllerBase
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                return BadRequest(new { success = false, message = "Phone number is required" });
+            }
+
             var result = await _authService.GenerateOTP(request.PhoneNumber);
             return Ok(new { success = true, message = "OTP sent successfully" });
         }
