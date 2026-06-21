@@ -16,30 +16,49 @@ public class AuthService : IAuthService
     private readonly TimeSpan OtpExpiryTime = TimeSpan.FromMinutes(2);
     private readonly string _jwtSecret = "YourSuperSecretKeyForJWTTokenGeneration2024!";
     private readonly int _tokenExpiryMinutes = 60;
+    private readonly ISmsService _smsService;
 
-    public AuthService(IMemoryCache cache)
+    public AuthService(IMemoryCache cache, ISmsService smsService)
     {
         _cache = cache;
+        _smsService = smsService;
     }
 
-    public Task<UserDto?> GenerateOTP(string phoneNumber)
+    public async Task<UserDto?> GenerateOTP(string phoneNumber)
     {
-        // In Phase 3, this will generate OTP and send via SMS
+        // Generate 4-digit OTP
+        var otp = new Random().Next(1000, 9999).ToString();
+        
+        // Store OTP in cache with expiration
+        _cache.Set(phoneNumber, otp, OtpExpiryTime);
+        
+        // Send OTP via SMS
+        await _smsService.SendTemporaryPassword(phoneNumber, otp);
+        
         var user = new UserDto
         {
             PhoneNumber = phoneNumber
         };
-        return Task.FromResult<UserDto?>(user);
+        return user;
     }
 
     public Task<UserDto?> VerifyOTP(string phoneNumber, string code)
     {
-        // In Phase 3, this will verify OTP from database/cache
-        var user = new UserDto
+        // Verify OTP from cache
+        if (_cache.TryGetValue(phoneNumber, out var storedOtp))
         {
-            PhoneNumber = phoneNumber
-        };
-        return Task.FromResult<UserDto?>(user);
+            if (storedOtp?.ToString() == code)
+            {
+                // OTP is valid, remove it from cache
+                _cache.Remove(phoneNumber);
+                var user = new UserDto
+                {
+                    PhoneNumber = phoneNumber
+                };
+                return Task.FromResult<UserDto?>(user);
+            }
+        }
+        return Task.FromResult<UserDto?>(null);
     }
 
     public Task<UserDto> Register(string phoneNumber, string fullName)
