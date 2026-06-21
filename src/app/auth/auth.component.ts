@@ -36,6 +36,7 @@ export class AuthComponent {
     this.authService.sendOtp(this.phoneNumber).subscribe({
       next: () => {
         this.step = 'otp';
+        this.otpCode = '';
         this.loading = false;
       },
       error: (err: any) => {
