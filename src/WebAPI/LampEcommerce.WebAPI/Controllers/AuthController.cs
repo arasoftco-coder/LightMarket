@@ -46,12 +46,12 @@ public class AuthController : ControllerBase
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.phone))
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
                 return BadRequest(new { success = false, message = "Phone number is required" });
             }
 
-            var result = await _authService.GenerateOTP(request.phone);
+            var result = await _authService.GenerateOTP(request.PhoneNumber);
             return Ok(new { success = true, message = "OTP sent successfully" });
         }
         catch (Exception ex)
@@ -112,7 +112,7 @@ public class AuthController : ControllerBase
     }
 }
 
-public class SendOtpRequest { public string phone { get; set; } = string.Empty; }
+public class SendOtpRequest { public string PhoneNumber { get; set; } = string.Empty; }
 public class VerifyOtpRequest { public string PhoneNumber { get; set; } = string.Empty; public string Code { get; set; } = string.Empty; }
 public class RegisterRequest { public string PhoneNumber { get; set; } = string.Empty; public string FullName { get; set; } = string.Empty; }
 public class SetPasswordRequest { public int UserId { get; set; } public string Password { get; set; } = string.Empty; }

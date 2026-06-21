@@ -74,7 +74,7 @@ export class AuthComponent {
     this.loading = true;
     this.error = '';
     
-    this.authService.register({ phone: this.phoneNumber, fullName: this.fullName }).subscribe({
+    this.authService.register({ phoneNumber: this.phoneNumber, fullName: this.fullName }).subscribe({
       next: () => {
         this.step = 'otp';
         this.loading = false;
