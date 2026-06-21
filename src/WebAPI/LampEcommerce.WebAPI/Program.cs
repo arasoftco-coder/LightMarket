@@ -6,7 +6,7 @@ using Microsoft.OpenApi.Models;
 using LampEcommerce.Infrastructure.Data;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
-using LampEcommerce.WebAPI.Settings;
+using LampEcommerce.Application.Models;
 using LampEcommerce.WebAPI.Middleware;
 using LampEcommerce.WebAPI.Services;
 
@@ -18,8 +18,6 @@ var builder = WebApplication.CreateBuilder(args);
 var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 
-var smsSettings = new SmsSettings();
-builder.Configuration.GetSection("SmsSettings").Bind(smsSettings);
 builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("SmsSettings"));
 
 // Database
