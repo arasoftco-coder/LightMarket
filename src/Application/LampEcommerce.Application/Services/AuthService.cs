@@ -26,8 +26,8 @@ public class AuthService : IAuthService
 
     public async Task<UserDto?> GenerateOTP(string phoneNumber)
     {
-        // Generate 4-digit OTP
-        var otp = new Random().Next(1000, 9999).ToString();
+        // Generate 5-digit OTP
+        var otp = new Random().Next(10000, 99999).ToString();
         
         // Store OTP in cache with expiration
         _cache.Set(phoneNumber, otp, OtpExpiryTime);
