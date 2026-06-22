@@ -8,7 +8,7 @@ namespace LampEcommerce.WebAPI.Services;
 
 public interface IJwtTokenGenerator
 {
-    string GenerateToken(int userId, string phoneNumber, string role);
+    string GenerateToken(int userId, string phoneNumber);
 }
 
 public class JwtTokenGenerator : IJwtTokenGenerator
@@ -20,7 +20,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings;
     }
 
-    public string GenerateToken(int userId, string phoneNumber, string role)
+    public string GenerateToken(int userId, string phoneNumber)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
@@ -29,7 +29,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.MobilePhone, phoneNumber),
-            new Claim(ClaimTypes.Role, role),
+            new Claim(ClaimTypes.Role, "User"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

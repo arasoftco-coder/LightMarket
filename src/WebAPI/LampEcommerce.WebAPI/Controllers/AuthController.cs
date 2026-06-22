@@ -71,7 +71,7 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { success = false, message = "Invalid OTP" });
 
             var user = result.User;
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
             return Ok(new { success = true, token = token, isNewUser = result.IsNewUser, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
@@ -93,7 +93,7 @@ public class AuthController : ControllerBase
             if (user == null)
                 return Unauthorized(new { success = false, message = "Invalid phone number or password" });
 
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
             return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
@@ -109,7 +109,7 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _authService.Register(request.PhoneNumber, request.FullName);
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
             return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)

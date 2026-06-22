@@ -49,30 +49,36 @@ public class AuthService : IAuthService
 
         // OTP is valid, remove it from cache
         _cache.Remove(phoneNumber);
-
-        // Register the user automatically if they don't exist yet
-        var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
-        var isNewUser = false;
-        if (user == null)
+        try
         {
-            user = new User
+            // Register the user automatically if they don't exist yet
+            var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+            var isNewUser = false;
+            if (user == null)
             {
-                PhoneNumber = phoneNumber,
-                FullName = string.Empty,
-                Role = "User",
-                PasswordHash = string.Empty,
-                PasswordSalt = string.Empty,
-                CreatedAt = DateTime.UtcNow
+                user = new User
+                {
+                    PhoneNumber = phoneNumber,
+                    FullName = string.Empty,
+                    PasswordHash = string.Empty,
+                    CreatedAt = DateTime.UtcNow
+                };
+                user = await _userRepository.AddAsync(user);
+                isNewUser = true;
+            }
+
+            return new OtpVerifyResult
+            {
+                User = MapToDto(user),
+                IsNewUser = isNewUser
             };
-            user = await _userRepository.AddAsync(user);
-            isNewUser = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
         }
 
-        return new OtpVerifyResult
-        {
-            User = MapToDto(user),
-            IsNewUser = isNewUser
-        };
+        throw new Exception("Uknown error");
     }
 
     public async Task<UserDto> Register(string phoneNumber, string fullName)
@@ -84,9 +90,7 @@ public class AuthService : IAuthService
             {
                 PhoneNumber = phoneNumber,
                 FullName = fullName,
-                Role = "User",
                 PasswordHash = string.Empty,
-                PasswordSalt = string.Empty,
                 CreatedAt = DateTime.UtcNow
             };
             user = await _userRepository.AddAsync(user);
@@ -108,9 +112,7 @@ public class AuthService : IAuthService
             return false;
         }
 
-        var salt = GenerateSalt();
-        user.PasswordHash = HashPassword(password, salt);
-        user.PasswordSalt = Convert.ToBase64String(salt);
+        user.PasswordHash = HashPassword(password);
         await _userRepository.UpdateAsync(user);
         return true;
     }
@@ -118,16 +120,12 @@ public class AuthService : IAuthService
     public async Task<UserDto?> LoginWithPassword(string phoneNumber, string password)
     {
         var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
-        if (user == null || string.IsNullOrEmpty(user.PasswordHash) || string.IsNullOrEmpty(user.PasswordSalt))
+        if (user == null || string.IsNullOrEmpty(user.PasswordHash))
         {
             return null;
         }
 
-        var salt = Convert.FromBase64String(user.PasswordSalt);
-        var hashedPassword = HashPassword(password, salt);
-        if (!CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(hashedPassword),
-                Encoding.UTF8.GetBytes(user.PasswordHash)))
+        if (!VerifyPassword(password, user.PasswordHash))
         {
             return null;
         }
@@ -141,23 +139,42 @@ public class AuthService : IAuthService
         PhoneNumber = user.PhoneNumber,
         FullName = user.FullName,
         Avatar = user.Avatar,
-        Role = user.Role,
         CreatedAt = user.CreatedAt
     };
 
-    private static byte[] GenerateSalt()
+    private static string HashPassword(string password)
     {
         var salt = new byte[16];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(salt);
-        return salt;
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(salt);
+        }
+
+        using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+        {
+            var hash = pbkdf2.GetBytes(20);
+            var hashBytes = new byte[36];
+            Array.Copy(salt, 0, hashBytes, 0, 16);
+            Array.Copy(hash, 0, hashBytes, 16, 20);
+            return Convert.ToBase64String(hashBytes);
+        }
     }
 
-    private static string HashPassword(string password, byte[] salt)
+    private static bool VerifyPassword(string password, string hash)
     {
-        using var sha256 = SHA256.Create();
-        var saltedPassword = Encoding.UTF8.GetBytes(password).Concat(salt).ToArray();
-        var hashedBytes = sha256.ComputeHash(saltedPassword);
-        return Convert.ToBase64String(hashedBytes);
+        var hashBytes = Convert.FromBase64String(hash);
+        var salt = new byte[16];
+        Array.Copy(hashBytes, 0, salt, 0, 16);
+
+        using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+        {
+            var hash2 = pbkdf2.GetBytes(20);
+            for (int i = 0; i < 20; i++)
+            {
+                if (hashBytes[i + 16] != hash2[i])
+                    return false;
+            }
+            return true;
+        }
     }
 }
