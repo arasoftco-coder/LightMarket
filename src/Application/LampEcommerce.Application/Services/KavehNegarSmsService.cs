@@ -50,14 +50,14 @@ public class KavehNegarSmsService : ISmsService
                     ? KaveNegarTemplate.TemporaryPassword 
                     : "unknown";
                 
-                var result = _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, templateName);
+                var result = _kavenegarApi.VerifyLookup(request.Phone, request.Message, templateName);
                 return result == null
                     ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
                     : new ApiResponse { Success = true, Message = "SMS sent successfully." };
             }
             else
             {
-                var result = _kavenegarApi.Send(_smsSettings.SenderId, request.PhoneNumber, request.Message);
+                var result = _kavenegarApi.Send(_smsSettings.SenderId, request.Phone, request.Message);
                 return result == null
                     ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
                     : new ApiResponse { Success = true, Message = "SMS sent successfully." };
@@ -65,12 +65,12 @@ public class KavehNegarSmsService : ISmsService
         }
         catch (Kavenegar.Exceptions.ApiException ex)
         {
-            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.PhoneNumber);
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.Phone);
             return new ApiResponse { Success = false, Message = "Failed to send SMS." };
         }
         catch (Kavenegar.Exceptions.HttpException ex)
         {
-            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.PhoneNumber);
+            _logger.LogError(ex, "Error sending SMS to {Receptor}", request.Phone);
             return new ApiResponse { Success = false, Message = "Failed to connect to Kavenegar server." };
         }
     }

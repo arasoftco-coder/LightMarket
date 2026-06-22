@@ -5,26 +5,26 @@ using LampEcommerce.Application.DTOs;
 // Auth Requests
 public class RegisterRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
 public class LoginRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 
 public class VerifyOtpRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string Otp { get; set; } = string.Empty;
 }
 
 public class GenerateOtpRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
 }
 
 // Cart Requests
@@ -75,7 +75,7 @@ public class EditInvoiceRequest
 // SMS Requests
 public class SendSmsRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public int? TemplateId { get; set; }
 }

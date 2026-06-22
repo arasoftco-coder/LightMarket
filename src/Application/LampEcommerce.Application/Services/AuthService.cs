@@ -37,7 +37,7 @@ public class AuthService : IAuthService
         
         var user = new UserDto
         {
-            PhoneNumber = phoneNumber
+            Phone = phoneNumber
         };
         return user;
     }
@@ -53,7 +53,7 @@ public class AuthService : IAuthService
                 _cache.Remove(phoneNumber);
                 var user = new UserDto
                 {
-                    PhoneNumber = phoneNumber
+                    Phone = phoneNumber
                 };
                 return Task.FromResult<UserDto?>(user);
             }
@@ -66,7 +66,7 @@ public class AuthService : IAuthService
         // In Phase 3, this will be implemented with database operations
         var user = new UserDto
         {
-            PhoneNumber = phoneNumber,
+            Phone = phoneNumber,
             FullName = fullName
         };
         return Task.FromResult(user);

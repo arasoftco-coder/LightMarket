@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class UserDto
 {
     public int Id { get; set; }
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string? Avatar { get; set; }
     public string Role { get; set; } = "User";
