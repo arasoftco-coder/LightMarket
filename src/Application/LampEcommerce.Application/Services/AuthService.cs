@@ -2,11 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using LampEcommerce.Application.DTOs;
 using LampEcommerce.Application.Interfaces;
-using LampEcommerce.Application.Models;
+using LampEcommerce.Domain.Entities;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace LampEcommerce.Application.Services;
 
@@ -14,27 +11,27 @@ public class AuthService : IAuthService
 {
     private readonly IMemoryCache _cache;
     private readonly TimeSpan OtpExpiryTime = TimeSpan.FromMinutes(2);
-    private readonly string _jwtSecret = "YourSuperSecretKeyForJWTTokenGeneration2024!";
-    private readonly int _tokenExpiryMinutes = 60;
     private readonly ISmsService _smsService;
+    private readonly IUserRepository _userRepository;
 
-    public AuthService(IMemoryCache cache, ISmsService smsService)
+    public AuthService(IMemoryCache cache, ISmsService smsService, IUserRepository userRepository)
     {
         _cache = cache;
         _smsService = smsService;
+        _userRepository = userRepository;
     }
 
     public async Task<UserDto?> GenerateOTP(string phoneNumber)
     {
         // Generate 5-digit OTP
         var otp = new Random().Next(10000, 99999).ToString();
-        
+
         // Store OTP in cache with expiration
         _cache.Set(phoneNumber, otp, OtpExpiryTime);
-        
+
         // Send OTP via SMS
         await _smsService.SendTemporaryPassword(phoneNumber, otp);
-        
+
         var user = new UserDto
         {
             PhoneNumber = phoneNumber
@@ -42,66 +39,111 @@ public class AuthService : IAuthService
         return user;
     }
 
-    public Task<UserDto?> VerifyOTP(string phoneNumber, string code)
+    public async Task<OtpVerifyResult?> VerifyOTP(string phoneNumber, string code)
     {
         // Verify OTP from cache
-        if (_cache.TryGetValue(phoneNumber, out var storedOtp))
+        if (!_cache.TryGetValue(phoneNumber, out var storedOtp) || storedOtp?.ToString() != code)
         {
-            if (storedOtp?.ToString() == code)
-            {
-                // OTP is valid, remove it from cache
-                _cache.Remove(phoneNumber);
-                var user = new UserDto
-                {
-                    PhoneNumber = phoneNumber
-                };
-                return Task.FromResult<UserDto?>(user);
-            }
+            return null;
         }
-        return Task.FromResult<UserDto?>(null);
-    }
 
-    public Task<UserDto> Register(string phoneNumber, string fullName)
-    {
-        // In Phase 3, this will be implemented with database operations
-        var user = new UserDto
+        // OTP is valid, remove it from cache
+        _cache.Remove(phoneNumber);
+
+        // Register the user automatically if they don't exist yet
+        var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+        var isNewUser = false;
+        if (user == null)
         {
-            PhoneNumber = phoneNumber,
-            FullName = fullName
+            user = new User
+            {
+                PhoneNumber = phoneNumber,
+                FullName = string.Empty,
+                Role = "User",
+                PasswordHash = string.Empty,
+                PasswordSalt = string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+            user = await _userRepository.AddAsync(user);
+            isNewUser = true;
+        }
+
+        return new OtpVerifyResult
+        {
+            User = MapToDto(user),
+            IsNewUser = isNewUser
         };
-        return Task.FromResult(user);
     }
 
-    public Task<bool> SetPassword(int userId, string password)
+    public async Task<UserDto> Register(string phoneNumber, string fullName)
     {
+        var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+        if (user == null)
+        {
+            user = new User
+            {
+                PhoneNumber = phoneNumber,
+                FullName = fullName,
+                Role = "User",
+                PasswordHash = string.Empty,
+                PasswordSalt = string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+            user = await _userRepository.AddAsync(user);
+        }
+        else
+        {
+            user.FullName = fullName;
+            await _userRepository.UpdateAsync(user);
+        }
+
+        return MapToDto(user);
+    }
+
+    public async Task<bool> SetPassword(int userId, string password)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return false;
+        }
+
         var salt = GenerateSalt();
-        var hashedPassword = HashPassword(password, salt);
-        // In Phase 3, store hashedPassword and salt in database for userId
-        return Task.FromResult(true);
+        user.PasswordHash = HashPassword(password, salt);
+        user.PasswordSalt = Convert.ToBase64String(salt);
+        await _userRepository.UpdateAsync(user);
+        return true;
     }
 
-    private string GenerateJwtToken(int userId, string phoneNumber)
+    public async Task<UserDto?> LoginWithPassword(string phoneNumber, string password)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
+        var user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+        if (user == null || string.IsNullOrEmpty(user.PasswordHash) || string.IsNullOrEmpty(user.PasswordSalt))
         {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.MobilePhone, phoneNumber),
-            new Claim(JwtRegisteredClaimNames.Exp, DateTimeOffset.Now.AddMinutes(_tokenExpiryMinutes).ToUnixTimeSeconds().ToString())
-        };
+            return null;
+        }
 
-        var token = new JwtSecurityToken(
-            issuer: "LightMarket",
-            audience: "LightMarket",
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(_tokenExpiryMinutes),
-            signingCredentials: credentials
-        );
+        var salt = Convert.FromBase64String(user.PasswordSalt);
+        var hashedPassword = HashPassword(password, salt);
+        if (!CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(hashedPassword),
+                Encoding.UTF8.GetBytes(user.PasswordHash)))
+        {
+            return null;
+        }
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return MapToDto(user);
     }
+
+    private static UserDto MapToDto(User user) => new UserDto
+    {
+        Id = user.Id,
+        PhoneNumber = user.PhoneNumber,
+        FullName = user.FullName,
+        Avatar = user.Avatar,
+        Role = user.Role,
+        CreatedAt = user.CreatedAt
+    };
 
     private static byte[] GenerateSalt()
     {

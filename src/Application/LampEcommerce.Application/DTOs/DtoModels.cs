@@ -13,6 +13,12 @@ public class UserDto
     public DateTime CreatedAt { get; set; }
 }
 
+public class OtpVerifyResult
+{
+    public UserDto User { get; set; } = new UserDto();
+    public bool IsNewUser { get; set; }
+}
+
 public class AddressDto
 {
     public int Id { get; set; }

@@ -66,16 +66,39 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await _authService.VerifyOTP(request.PhoneNumber, request.Code);
-            if (user == null)
+            var result = await _authService.VerifyOTP(request.PhoneNumber, request.Code);
+            if (result == null)
                 return Unauthorized(new { success = false, message = "Invalid OTP" });
+
+            var user = result.User;
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
+            return Ok(new { success = true, token = token, isNewUser = result.IsNewUser, user = new { user.Id, user.PhoneNumber, user.FullName } });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying OTP");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost("login-password")]
+    public async Task<IActionResult> LoginWithPassword([FromBody] PasswordLoginRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { success = false, message = "Phone number and password are required" });
+
+            var user = await _authService.LoginWithPassword(request.PhoneNumber, request.Password);
+            if (user == null)
+                return Unauthorized(new { success = false, message = "Invalid phone number or password" });
 
             var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
             return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error verifying OTP");
+            _logger.LogError(ex, "Error logging in with password");
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
@@ -117,3 +140,4 @@ public class VerifyOtpRequest { public string PhoneNumber { get; set; } = string
 public class RegisterRequest { public string PhoneNumber { get; set; } = string.Empty; public string FullName { get; set; } = string.Empty; }
 public class SetPasswordRequest { public int UserId { get; set; } public string Password { get; set; } = string.Empty; }
 public class SendTemporaryPasswordRequest { public string PhoneNumber { get; set; } = string.Empty; public string TemporaryPassword { get; set; } = string.Empty; }
+public class PasswordLoginRequest { public string PhoneNumber { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using LampEcommerce.Infrastructure.Data;
+using LampEcommerce.Infrastructure.Repositories;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
 using LampEcommerce.Application.Models;
@@ -23,6 +24,9 @@ builder.Services.Configure<SmsSettings>(builder.Configuration.GetSection("SmsSet
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Dependency Injection - Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Dependency Injection - Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -105,6 +109,22 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.Configure<LampEcommerce.WebAPI.Settings.JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LampEcommerce.WebAPI.Settings.JwtSettings>>().Value);
 var app = builder.Build();
+
+// Apply pending EF Core migrations so the schema (e.g. Users table) exists.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Failed to apply database migrations on startup. The database may be unavailable.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
