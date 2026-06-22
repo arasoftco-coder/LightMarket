@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -10,15 +11,20 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
   isLoggedIn = false;
   cartCount = 0;
+  private authSub: Subscription;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {
-    this.isLoggedIn = this.authService.isAuthenticated();
+    this.authSub = this.authService.isLoggedIn$.subscribe(loggedIn => this.isLoggedIn = loggedIn);
+  }
+
+  ngOnDestroy(): void {
+    this.authSub.unsubscribe();
   }
 
   navigateTo(path: string): void {

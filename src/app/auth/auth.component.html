@@ -2,38 +2,98 @@
   <div class="auth-card">
     <h2 class="auth-title">ورود / ثبت‌نام</h2>
 
-    <!-- Step 1: Phone Number -->
-    <div *ngIf="step === 'phone'">
-      <p class="auth-description">شماره موبایل خود را وارد کنید</p>
-      
-      <input 
-        type="tel" 
-        [(ngModel)]="phoneNumber" 
-        placeholder="09xxxxxxxxx"
-        class="auth-input"
-        [disabled]="loading">
-      
-      <button (click)="sendOtp()" [disabled]="loading" class="auth-btn">
-        {{ loading ? 'در حال ارسال...' : 'ارسال کد تأیید' }}
+    <!-- Login method toggle -->
+    <div class="auth-tabs">
+      <button
+        type="button"
+        class="auth-tab"
+        [class.active]="mode === 'otp'"
+        (click)="switchMode('otp')">
+        ورود با رمز یکبارمصرف
+      </button>
+      <button
+        type="button"
+        class="auth-tab"
+        [class.active]="mode === 'password'"
+        (click)="switchMode('password')">
+        ورود با رمز عبور
       </button>
     </div>
 
-    <!-- Step 2: OTP -->
-    <div *ngIf="step === 'otp'">
-      <p class="auth-description">کد 5 رقمی ارسال شده را وارد کنید</p>
-      
-      <input 
-        type="text" 
-        [(ngModel)]="otpCode" 
-        placeholder="*****"
-        maxlength="5"
+    <!-- OTP login -->
+    <ng-container *ngIf="mode === 'otp'">
+      <!-- Step 1: Phone Number -->
+      <div *ngIf="step === 'phone'">
+        <p class="auth-description">شماره موبایل خود را وارد کنید</p>
+
+        <input
+          type="tel"
+          [(ngModel)]="phoneNumber"
+          placeholder="09xxxxxxxxx"
+          class="auth-input"
+          [disabled]="loading">
+
+        <button (click)="sendOtp()" [disabled]="loading" class="auth-btn">
+          {{ loading ? 'در حال ارسال...' : 'ارسال کد تأیید' }}
+        </button>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div *ngIf="step === 'otp'">
+        <p class="auth-description">کد 5 رقمی ارسال شده را وارد کنید</p>
+
+        <input
+          type="text"
+          [(ngModel)]="otpCode"
+          placeholder="*****"
+          maxlength="5"
+          class="auth-input"
+          [disabled]="loading">
+
+        <button (click)="verifyOtp()" [disabled]="loading" class="auth-btn">
+          {{ loading ? 'در حال بررسی...' : 'تأیید و ورود' }}
+        </button>
+      </div>
+
+      <!-- Step 3: Complete registration (new users) -->
+      <div *ngIf="step === 'register'">
+        <p class="auth-description">به لایت مارکت خوش آمدید! نام خود را وارد کنید</p>
+
+        <input
+          type="text"
+          [(ngModel)]="fullName"
+          placeholder="نام و نام خانوادگی"
+          class="auth-input"
+          [disabled]="loading">
+
+        <button (click)="register()" [disabled]="loading" class="auth-btn">
+          {{ loading ? 'در حال ثبت...' : 'تکمیل ثبت‌نام' }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Password login -->
+    <ng-container *ngIf="mode === 'password'">
+      <p class="auth-description">شماره موبایل و رمز عبور خود را وارد کنید</p>
+
+      <input
+        type="tel"
+        [(ngModel)]="phoneNumber"
+        placeholder="09xxxxxxxxx"
         class="auth-input"
         [disabled]="loading">
-      
-      <button (click)="verifyOtp()" [disabled]="loading" class="auth-btn">
-        {{ loading ? 'در حال بررسی...' : 'تأیید و ورود' }}
+
+      <input
+        type="password"
+        [(ngModel)]="password"
+        placeholder="رمز عبور"
+        class="auth-input"
+        [disabled]="loading">
+
+      <button (click)="loginWithPassword()" [disabled]="loading" class="auth-btn">
+        {{ loading ? 'در حال ورود...' : 'ورود' }}
       </button>
-    </div>
+    </ng-container>
 
     <!-- Error Message -->
     <div *ngIf="error" class="auth-error">

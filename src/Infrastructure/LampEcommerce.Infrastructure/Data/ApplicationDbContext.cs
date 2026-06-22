@@ -31,7 +31,11 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
             entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Role).IsRequired().HasMaxLength(20).HasDefaultValue("User");
             entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.PasswordSalt).IsRequired();
+
+            entity.HasIndex(e => e.PhoneNumber).IsUnique();
 
             // One-to-Many: User -> Addresses
             entity.HasMany(e => e.Addresses)

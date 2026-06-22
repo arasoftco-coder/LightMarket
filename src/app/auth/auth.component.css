@@ -28,6 +28,31 @@
   font-size: 0.95rem;
 }
 
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 24px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-small);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-tab.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
 .auth-input {
   width: 100%;
   padding: 14px;
