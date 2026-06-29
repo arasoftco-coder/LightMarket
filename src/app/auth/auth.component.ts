@@ -79,8 +79,8 @@ export class AuthComponent {
           this.router.navigate(['']);
         }
       },
-      error: () => {
-        this.error = 'کد تأیید نامعتبر است';
+      error: (err: any) => {
+        this.error = err?.error?.message || 'خطا در ارتباط با سرور';
         this.loading = false;
       }
     });
