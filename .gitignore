@@ -20,6 +20,8 @@ Nothing should be ignored based on the provided file changes. The only modified 
 /.angular/cache/17.3.12/light-market
 /node_modules
 node_modules/
+.angular
+.vscode/*
 Publish UI.ps1
 Publish UI.ps1
 Build UI.bat
