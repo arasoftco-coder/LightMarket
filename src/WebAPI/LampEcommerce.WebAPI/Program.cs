@@ -8,6 +8,7 @@ using LampEcommerce.Infrastructure.Repositories;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
 using LampEcommerce.Application.Models;
+using LampEcommerce.Infrastructure.Services;
 using LampEcommerce.WebAPI.Middleware;
 using LampEcommerce.WebAPI.Services;
 
@@ -38,7 +39,9 @@ builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();
 builder.Services.AddScoped<ISmsService, KavehNegarSmsService>();
+builder.Services.AddScoped<IMessengerBotService, MessengerBotService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddHttpClient();
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>

@@ -1,4 +1,5 @@
 using Xunit;
+using LampEcommerce.Domain.Entities;
 
 namespace Domain.Tests;
 

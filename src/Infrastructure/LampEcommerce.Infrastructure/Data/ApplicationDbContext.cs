@@ -32,7 +32,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
             entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
             entity.Property(e => e.PasswordHash);
-            entity.Property(e => e.Role).IsRequired().HasMaxLength(20).HasDefaultValue("Customer");
+            entity.Property(e => e.Role).IsRequired().HasMaxLength(20).HasDefaultValue(UserRoles.Customer);
+            entity.Property(e => e.BaleChatId).HasMaxLength(50);
+            entity.Property(e => e.TelegramChatId).HasMaxLength(50);
 
             entity.HasIndex(e => e.PhoneNumber).IsUnique();
 

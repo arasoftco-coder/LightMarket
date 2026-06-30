@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using LampEcommerce.Application.Interfaces;
+using LampEcommerce.Domain.Entities;
 
 namespace LampEcommerce.WebAPI.Controllers;
 
@@ -12,17 +13,20 @@ public class AdminController : ControllerBase
     private readonly ICampaignService _campaignService;
     private readonly IScraperService _scraperService;
     private readonly IFuzzyMatchingService _fuzzyMatchingService;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
         ICampaignService campaignService,
         IScraperService scraperService,
         IFuzzyMatchingService fuzzyMatchingService,
+        IUserRepository userRepository,
         ILogger<AdminController> logger)
     {
         _campaignService = campaignService;
         _scraperService = scraperService;
         _fuzzyMatchingService = fuzzyMatchingService;
+        _userRepository = userRepository;
         _logger = logger;
     }
 
@@ -133,9 +137,38 @@ public class AdminController : ControllerBase
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
+
+    [HttpPost("users/{userId}/role")]
+    public async Task<IActionResult> ChangeUserRole(int userId, [FromBody] ChangeRoleRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Role))
+                return BadRequest(new { success = false, message = "Role is required." });
+
+            var validRoles = new List<string> { UserRoles.Admin, UserRoles.OrderManager, UserRoles.CampaignManager, UserRoles.Customer };
+            if (!validRoles.Contains(request.Role))
+                return BadRequest(new { success = false, message = "Invalid role specified." });
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found." });
+
+            user.Role = request.Role;
+            await _userRepository.UpdateAsync(user);
+
+            return Ok(new { success = true, message = $"User role updated to '{request.Role}' successfully." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing user role");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
 }
 
 public class CreateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
 public class UpdateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
 public class CreateSupplierRequest { public string Name { get; set; } = string.Empty; public string WebsiteUrl { get; set; } = string.Empty; }
 public class ScrapeRequest { public string Url { get; set; } = string.Empty; public Dictionary<string, string> ExtractionConfig { get; set; } = new(); }
+public class ChangeRoleRequest { public string Role { get; set; } = string.Empty; }

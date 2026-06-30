@@ -51,7 +51,8 @@ public class AuthController : ControllerBase
                 return BadRequest(new { success = false, message = "Phone number is required" });
             }
 
-            var result = await _authService.GenerateOTP(request.PhoneNumber);
+            var channel = string.IsNullOrWhiteSpace(request.Channel) ? "SMS" : request.Channel;
+            var result = await _authService.GenerateOTP(request.PhoneNumber, channel);
             return Ok(new { success = true, message = "OTP sent successfully" });
         }
         catch (Exception ex)
@@ -71,7 +72,7 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { success = false, message = "Invalid OTP" });
 
             var user = result.User;
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
             return Ok(new { success = true, token = token, isNewUser = result.IsNewUser, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
@@ -93,7 +94,7 @@ public class AuthController : ControllerBase
             if (user == null)
                 return Unauthorized(new { success = false, message = "Invalid phone number or password" });
 
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
             return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
@@ -109,7 +110,7 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _authService.Register(request.PhoneNumber, request.FullName);
-            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
             return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
         }
         catch (Exception ex)
@@ -135,7 +136,11 @@ public class AuthController : ControllerBase
     }
 }
 
-public class SendOtpRequest { public string PhoneNumber { get; set; } = string.Empty; }
+public class SendOtpRequest 
+{ 
+    public string PhoneNumber { get; set; } = string.Empty; 
+    public string Channel { get; set; } = "SMS"; 
+}
 public class VerifyOtpRequest { public string PhoneNumber { get; set; } = string.Empty; public string Code { get; set; } = string.Empty; }
 public class RegisterRequest { public string PhoneNumber { get; set; } = string.Empty; public string FullName { get; set; } = string.Empty; }
 public class SetPasswordRequest { public int UserId { get; set; } public string Password { get; set; } = string.Empty; }

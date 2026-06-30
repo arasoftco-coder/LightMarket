@@ -5,15 +5,23 @@ using LampEcommerce.Application.DTOs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace LampEcommerce.Application.Services;
+namespace LampEcommerce.Infrastructure.Services;
 
 public class KavehNegarSmsService : ISmsService
 {
     private readonly SmsSettings _smsSettings;
     private readonly KavenegarApi _kavenegarApi;
     private readonly ILogger<KavehNegarSmsService> _logger;
+    private string GetTemplateName(string key, string defaultValue)
+    {
+        if (_smsSettings.Templates != null && _smsSettings.Templates.TryGetValue(key, out var templateName))
+        {
+            return templateName;
+        }
+        return defaultValue;
+    }
 
-    public KavehNegarSmsService(IOptions<LampEcommerce.Application.Models.SmsSettings> smsSettings, ILogger<KavehNegarSmsService> logger)
+    public KavehNegarSmsService(IOptions<SmsSettings> smsSettings, ILogger<KavehNegarSmsService> logger)
     {
         _smsSettings = smsSettings.Value;
         _kavenegarApi = new KavenegarApi(_smsSettings.ApiKey);
@@ -24,15 +32,16 @@ public class KavehNegarSmsService : ISmsService
     {
         try
         {
-            var result = await Task.Run(() => _kavenegarApi.VerifyLookup(mobile, temporaryPassword, KaveNegarTemplate.TemporaryPassword));
+            var template = GetTemplateName("TemporaryPassword", "passwordtmp");
+            var result = await Task.Run(() => _kavenegarApi.VerifyLookup(mobile, temporaryPassword, template));
             return result != null;
         }
-        catch (Kavenegar.Exceptions.ApiException ex) //return not 200
+        catch (Kavenegar.Exceptions.ApiException ex)
         {
             _logger.LogError(ex, "Error sending temporary password SMS to {Mobile}", mobile);
             return false;
         }
-        catch (Kavenegar.Exceptions.HttpException ex) //something went wrong during the HTTP request
+        catch (Kavenegar.Exceptions.HttpException ex)
         {
             _logger.LogError(ex, "Error sending temporary password SMS to {Mobile}", mobile);
             return false;
@@ -45,9 +54,8 @@ public class KavehNegarSmsService : ISmsService
         {
             if (request.TemplateId.HasValue)
             {
-                // Get template name from TemplateId
                 var templateName = request.TemplateId.Value == 1 
-                    ? KaveNegarTemplate.TemporaryPassword 
+                    ? GetTemplateName("TemporaryPassword", "passwordtmp") 
                     : "unknown";
                 
                 var result = await Task.Run(() => _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, templateName));
@@ -77,13 +85,10 @@ public class KavehNegarSmsService : ISmsService
 
     public Task<IEnumerable<SmsTemplateDto>> GetTemplatesAsync()
     {
-        // Kavenegar does not provide an API to list templates, returning empty list
         var templates = new List<SmsTemplateDto>
         {
             new SmsTemplateDto { Id = 1, Name = "Temporary Password", Template = "کد تایید موقت: {0}", IsActive = true }
         };
         return Task.FromResult<IEnumerable<SmsTemplateDto>>(templates);
     }
-
-
 }

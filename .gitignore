@@ -26,3 +26,7 @@ Publish UI.ps1
 Publish UI.ps1
 Build UI.bat
 package-lock.json
+tests/Domain.Tests/bin
+tests/Domain.Tests/obj
+tests/Application.Tests/bin
+tests/Application.Tests/obj
