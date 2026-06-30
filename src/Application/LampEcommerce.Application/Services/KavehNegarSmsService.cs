@@ -24,7 +24,7 @@ public class KavehNegarSmsService : ISmsService
     {
         try
         {
-            var result = _kavenegarApi.VerifyLookup(mobile, temporaryPassword, KaveNegarTemplate.TemporaryPassword);
+            var result = await Task.Run(() => _kavenegarApi.VerifyLookup(mobile, temporaryPassword, KaveNegarTemplate.TemporaryPassword));
             return result != null;
         }
         catch (Kavenegar.Exceptions.ApiException ex) //return not 200
@@ -50,14 +50,14 @@ public class KavehNegarSmsService : ISmsService
                     ? KaveNegarTemplate.TemporaryPassword 
                     : "unknown";
                 
-                var result = _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, templateName);
+                var result = await Task.Run(() => _kavenegarApi.VerifyLookup(request.PhoneNumber, request.Message, templateName));
                 return result == null
                     ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
                     : new ApiResponse { Success = true, Message = "SMS sent successfully." };
             }
             else
             {
-                var result = _kavenegarApi.Send(_smsSettings.SenderId, request.PhoneNumber, request.Message);
+                var result = await Task.Run(() => _kavenegarApi.Send(_smsSettings.SenderId, request.PhoneNumber, request.Message));
                 return result == null
                     ? throw new Kavenegar.Exceptions.ApiException("result is null", 0)
                     : new ApiResponse { Success = true, Message = "SMS sent successfully." };

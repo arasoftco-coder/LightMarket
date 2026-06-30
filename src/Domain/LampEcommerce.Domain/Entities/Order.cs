@@ -12,7 +12,7 @@ public class Order
     public string ShippingMethod { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public string? PaymentTrackingCode { get; set; }
-    public string Status { get; set; } = "Pending";  // Pending, Paid, Shipped, Delivered, Cancelled
+    public string Status { get; set; } = "Open";  // Open (Cart), PendingPayment, Processing, Shipped, Cancelled
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties

@@ -13,9 +13,8 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         
         
         
-        // Get connection string from configuration
         var connectionString = 
-            "Server=localhost;Database=LampEcommerceDb;User Id=sa;Password=YourPassword123;TrustServerCertificate=true;";
+            "Data Source=.;Initial Catalog=LightMarketDb;Integrated Security=True;Trust Server Certificate=True";
         
         optionsBuilder.UseSqlServer(connectionString);
         

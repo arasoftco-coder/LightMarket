@@ -6,7 +6,8 @@ public class User
     public string PhoneNumber { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string? Avatar { get; set; }
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
+    public string Role { get; set; } = "Customer";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties

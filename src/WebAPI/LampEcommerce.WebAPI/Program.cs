@@ -119,6 +119,27 @@ using (var scope = app.Services.CreateScope())
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
     }
+    catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 2714)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Database tables already exist. Seeding migration history...");
+        try
+        {
+            var dbContext = services.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.ExecuteSqlRaw(
+                "IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '__EFMigrationsHistory') " +
+                "CREATE TABLE [__EFMigrationsHistory] ([MigrationId] nvarchar(150) NOT NULL CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY, [ProductVersion] nvarchar(32) NOT NULL); " +
+                "IF NOT EXISTS (SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260622043136_InitialCreate') " +
+                "INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ('20260622043136_InitialCreate', '8.0.0');"
+            );
+            dbContext.Database.Migrate();
+            logger.LogInformation("Database migration history seeded successfully.");
+        }
+        catch (Exception innerEx)
+        {
+            logger.LogError(innerEx, "Failed to seed database migration history.");
+        }
+    }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
