@@ -4,7 +4,7 @@ using LampEcommerce.Application.Interfaces;
 namespace LampEcommerce.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/campaigns")]
 public class CampaignController : ControllerBase
 {
     private readonly ICampaignService _campaignService;

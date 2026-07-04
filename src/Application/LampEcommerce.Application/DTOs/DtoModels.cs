@@ -146,17 +146,28 @@ public class CartDto
     public decimal TotalAmount => Items.Sum(i => i.UnitPrice * i.Quantity);
 }
 
+public class TicketMessageDto
+{
+    public int Id { get; set; }
+    public string Sender { get; set; } = "user";
+    public string Message { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
 public class TicketDto
 {
     public int Id { get; set; }
     public int UserId { get; set; }
+    public string Category { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public string Status { get; set; } = "Open";
+    public string Priority { get; set; } = "Low";
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     
     public UserDto? User { get; set; }
+    public List<TicketMessageDto> Messages { get; set; } = new List<TicketMessageDto>();
 }
 
 public class SmsTemplateDto

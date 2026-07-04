@@ -50,15 +50,20 @@ export class ProductDetailComponent implements OnInit {
     // For now, fetch from active campaign products
     this.campaignService.getActiveCampaign().subscribe({
       next: (campaign: any) => {
-        this.campaignService.getCampaignProducts(campaign.id).subscribe({
-          next: (products: any) => {
-            this.product = products.find((p: any) => p.id === id) || null;
-            this.isLoading = false;
-          },
-          error: () => {
-            this.isLoading = false;
-          }
-        });
+        if (campaign) {
+          this.campaignService.getCampaignProducts(campaign.id).subscribe({
+            next: (products: any) => {
+              this.product = products?.find((p: any) => p.id === id) || null;
+              this.isLoading = false;
+            },
+            error: () => {
+              this.isLoading = false;
+            }
+          });
+        } else {
+          this.product = null;
+          this.isLoading = false;
+        }
       },
       error: () => {
         this.isLoading = false;

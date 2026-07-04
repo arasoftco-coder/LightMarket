@@ -1,10 +1,14 @@
-using LampEcommerce.Application.Models;
+using LampEcommerce.Application.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LampEcommerce.Application.Services;
 
-public class FuzzyMatchingService
+public class FuzzyMatchingService : IFuzzyMatchingService
 {
-    public Task<List<FuzzyMatchResult>> FindBestMatchAsync(string productName, List<string> productList)
+    public Task<List<FuzzyMatchResult>> FindBestMatch(string productName, List<string> productList)
     {
         // Normalize strings (remove extra spaces, convert to lowercase)
         var normalizedSearch = NormalizeString(productName);
@@ -20,7 +24,7 @@ public class FuzzyMatchingService
             {
                 results.Add(new FuzzyMatchResult
                 {
-                    ProductName = product,
+                    MatchedName = product,
                     ConfidenceScore = similarity
                 });
             }
@@ -74,10 +78,4 @@ public class FuzzyMatchingService
         
         return 1.0 - ((double)distance / maxLen);
     }
-}
-
-public class FuzzyMatchResult
-{
-    public string ProductName { get; set; } = string.Empty;
-    public double ConfidenceScore { get; set; }
 }

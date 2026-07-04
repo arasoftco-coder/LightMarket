@@ -85,6 +85,15 @@ export class ExcelImportComponent {
 
   confirmImport(): void {
     const confirmedItems = this.matchResults.filter(m => m.confirmed);
-    alert(`${confirmedItems.length} مورد تأیید و وارد شد`);
+    this.adminService.confirmImport(confirmedItems).subscribe({
+      next: (res) => {
+        alert(`${confirmedItems.length} مورد با موفقیت وارد و ثبت شد.`);
+        this.matchResults = [];
+      },
+      error: (err) => {
+        console.error('Error confirming import', err);
+        alert('خطا در ثبت نهایی کالاها: ' + (err.error?.message || err.message));
+      }
+    });
   }
 }

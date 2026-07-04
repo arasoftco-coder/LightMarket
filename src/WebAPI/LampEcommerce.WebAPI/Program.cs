@@ -28,6 +28,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Dependency Injection - Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<ICampaignProductRepository, CampaignProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+builder.Services.AddScoped<IShippingMethodRepository, ShippingMethodRepository>();
 
 // Dependency Injection - Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -38,6 +45,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();
+builder.Services.AddScoped<IFuzzyMatchingService, FuzzyMatchingService>();
 builder.Services.AddScoped<ISmsService, KavehNegarSmsService>();
 builder.Services.AddScoped<IMessengerBotService, MessengerBotService>();
 builder.Services.AddScoped<IAdminService, AdminService>();

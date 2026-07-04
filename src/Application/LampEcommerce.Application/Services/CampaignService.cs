@@ -1,147 +1,223 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using LampEcommerce.Application.DTOs;
 using LampEcommerce.Application.Interfaces;
-using LampEcommerce.Application.Models;
+using LampEcommerce.Domain.Entities;
 
 namespace LampEcommerce.Application.Services;
 
 public class CampaignService : ICampaignService
 {
-    public Task<CampaignDto?> GetActiveCampaign()
+    private readonly ICampaignRepository _campaignRepository;
+    private readonly ICampaignProductRepository _campaignProductRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly ISupplierRepository _supplierRepository;
+
+    public CampaignService(
+        ICampaignRepository campaignRepository,
+        ICampaignProductRepository campaignProductRepository,
+        IUserRepository userRepository,
+        ISupplierRepository supplierRepository)
     {
-        // Return default active campaign
-        var campaign = new CampaignDto
-        {
-            Id = 1,
-            Name = "Default Campaign",
-            SupplierId = 1,
-            StartDate = DateTime.Now,
-            EndDate = DateTime.Now.AddMonths(3),
-            IsActive = true,
-            IsDefault = true,
-            MinOrderQty = 1,
-            MaxOrderQty = 100
-        };
-        return Task.FromResult<CampaignDto?>(campaign);
+        _campaignRepository = campaignRepository;
+        _campaignProductRepository = campaignProductRepository;
+        _userRepository = userRepository;
+        _supplierRepository = supplierRepository;
     }
 
-    public Task<CampaignDto?> GetCampaignBySlug(string slug)
+    public async Task<CampaignDto?> GetActiveCampaign()
     {
-        // Return campaign by URL-friendly name
-        var campaign = new CampaignDto
+        var campaign = await _campaignRepository.GetDefaultActiveCampaignAsync();
+        if (campaign == null) return null;
+
+        if (campaign.EndDate < DateTime.UtcNow)
         {
-            Id = 1,
-            Name = "Default Campaign",
-            Slug = slug,
-            SupplierId = 1,
-            StartDate = DateTime.Now,
-            EndDate = DateTime.Now.AddMonths(3),
-            IsActive = true,
-            IsDefault = true,
-            MinOrderQty = 1,
-            MaxOrderQty = 100
-        };
-        return Task.FromResult<CampaignDto?>(campaign);
+            throw new InvalidOperationException("کمپین پیش‌فرض فعال منقضی شده است.");
+        }
+
+        return MapToDto(campaign);
     }
 
-    public Task<List<CampaignProductDto>> GetCampaignProducts(int campaignId)
+    public async Task<CampaignDto?> GetCampaignBySlug(string slug)
     {
-        // Return products with prices, stock, and discounts
-        var products = new List<CampaignProductDto>
+        var campaign = await _campaignRepository.GetBySlugAsync(slug);
+        if (campaign == null) return null;
+
+        if (!campaign.IsActive)
         {
-            new CampaignProductDto
+            throw new InvalidOperationException("این کمپین در حال حاضر فعال نیست.");
+        }
+        if (campaign.EndDate < DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("این کمپین منقضی شده است.");
+        }
+
+        return MapToDto(campaign);
+    }
+
+    public async Task<List<CampaignProductDto>> GetCampaignProducts(int campaignId)
+    {
+        var campaignProducts = await _campaignProductRepository.GetProductsByCampaignIdAsync(campaignId);
+        return campaignProducts.Select(cp => new CampaignProductDto
+        {
+            Id = cp.Id,
+            CampaignId = cp.CampaignId,
+            ProductId = cp.ProductId,
+            PurchasePrice = cp.PurchasePrice,
+            SellingPrice = cp.SellingPrice,
+            Discount = cp.Discount,
+            Stock = cp.Stock,
+            MinQtyPerUser = cp.MinQtyPerUser,
+            MaxQtyPerUser = cp.MaxQtyPerUser,
+            Product = cp.Product == null ? null : new ProductDto
             {
-                Id = 1,
-                CampaignId = campaignId,
-                ProductId = 1,
-                PurchasePrice = 100.00m,
-                SellingPrice = 150.00m,
-                Discount = 10.00m,
-                Stock = 50,
-                MinQtyPerUser = 1,
-                MaxQtyPerUser = 10,
-                Product = new ProductDto
-                {
-                    Id = 1,
-                    Name = "Sample Product",
-                    BasePrice = 100.00m
-                }
+                Id = cp.Product.Id,
+                Name = cp.Product.Name,
+                ImageUrl = cp.Product.ImageUrl,
+                Description = cp.Product.Description,
+                BasePrice = cp.Product.BasePrice
             }
-        };
-        return Task.FromResult<List<CampaignProductDto>>(products);
+        }).ToList();
     }
 
-    public Task<bool> ValidateCampaignAccess(int campaignId, int userId)
+    public async Task<bool> ValidateCampaignAccess(int campaignId, int userId)
     {
-        // Check if user can access this campaign (geographic restrictions, quantity limits)
-        // In Phase 3, this will check database for user location and order history
-        return Task.FromResult(true);
-    }
+        var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+        if (campaign == null) return false;
 
-    public Task<IEnumerable<CampaignDto>> GetAllCampaigns()
-    {
-        var campaigns = new List<CampaignDto>
+        // 1. Check active and date bounds
+        if (!campaign.IsActive || campaign.StartDate > DateTime.UtcNow || campaign.EndDate < DateTime.UtcNow)
         {
-            new CampaignDto
+            return false;
+        }
+
+        var user = await _userRepository.GetByIdWithDetailsAsync(userId);
+        if (user == null) return false;
+
+        // 2. Validate geographic restrictions (Provinces / Cities)
+        if (!string.IsNullOrWhiteSpace(campaign.AllowedProvinces) || !string.IsNullOrWhiteSpace(campaign.AllowedCities))
+        {
+            var allowedProvincesList = campaign.AllowedProvinces?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim().ToLower())
+                .ToList() ?? new List<string>();
+
+            var allowedCitiesList = campaign.AllowedCities?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Trim().ToLower())
+                .ToList() ?? new List<string>();
+
+            var matchesGeo = user.Addresses.Any(addr =>
+                (allowedProvincesList.Count == 0 || allowedProvincesList.Contains(addr.Province.Trim().ToLower())) &&
+                (allowedCitiesList.Count == 0 || allowedCitiesList.Contains(addr.City.Trim().ToLower()))
+            );
+
+            if (!matchesGeo) return false;
+        }
+
+        // 3. Validate user total order quantity limits in this campaign (from completed orders)
+        if (campaign.MaxOrderQty > 0 || campaign.MinOrderQty > 0)
+        {
+            var totalOrderedQty = user.Orders
+                .Where(o => o.CampaignId == campaignId && o.Status != "Open" && o.Status != "Cancelled")
+                .SelectMany(o => o.OrderItems)
+                .Sum(oi => oi.Quantity);
+
+            if (campaign.MaxOrderQty > 0 && totalOrderedQty >= campaign.MaxOrderQty)
             {
-                Id = 1,
-                Name = "Default Campaign",
-                SupplierId = 1,
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddMonths(3),
-                IsActive = true,
-                IsDefault = true,
-                MinOrderQty = 1,
-                MaxOrderQty = 100
+                return false;
             }
-        };
-        return Task.FromResult<IEnumerable<CampaignDto>>(campaigns);
+        }
+
+        return true;
     }
 
-    public Task<CampaignDto?> CreateCampaign(string name, string slug, DateTime startDate, DateTime endDate, bool isActive)
+    public async Task<IEnumerable<CampaignDto>> GetAllCampaigns()
     {
-        var campaign = new CampaignDto
+        var campaigns = await _campaignRepository.GetAllAsync();
+        return campaigns.Select(MapToDto);
+    }
+
+    public async Task<CampaignDto?> CreateCampaign(string name, string slug, DateTime startDate, DateTime endDate, bool isActive)
+    {
+        var suppliers = await _supplierRepository.GetAllAsync();
+        var supplier = suppliers.FirstOrDefault();
+        if (supplier == null)
         {
-            Id = 1,
+            supplier = new Supplier
+            {
+                Name = "Default Supplier",
+                Website = "https://defaultsupplier.com",
+                ContactInfo = "info@defaultsupplier.com"
+            };
+            supplier = await _supplierRepository.AddAsync(supplier);
+        }
+
+        var campaign = new Campaign
+        {
             Name = name,
             Slug = slug,
-            SupplierId = 1,
+            SupplierId = supplier.Id,
             StartDate = startDate,
             EndDate = endDate,
             IsActive = isActive,
-            IsDefault = false,
+            IsDefault = !suppliers.Any(), // If it's the first campaign, make it default
             MinOrderQty = 1,
             MaxOrderQty = 100
         };
-        return Task.FromResult<CampaignDto?>(campaign);
+
+        var created = await _campaignRepository.AddAsync(campaign);
+        return MapToDto(created);
     }
 
-    public Task<CampaignDto?> UpdateCampaign(int id, string name, string slug, DateTime startDate, DateTime endDate, bool isActive)
+    public async Task<CampaignDto?> UpdateCampaign(int id, string name, string slug, DateTime startDate, DateTime endDate, bool isActive)
     {
-        var campaign = new CampaignDto
-        {
-            Id = id,
-            Name = name,
-            Slug = slug,
-            SupplierId = 1,
-            StartDate = startDate,
-            EndDate = endDate,
-            IsActive = isActive,
-            IsDefault = false,
-            MinOrderQty = 1,
-            MaxOrderQty = 100
-        };
-        return Task.FromResult<CampaignDto?>(campaign);
+        var campaign = await _campaignRepository.GetByIdAsync(id);
+        if (campaign == null) return null;
+
+        campaign.Name = name;
+        campaign.Slug = slug;
+        campaign.StartDate = startDate;
+        campaign.EndDate = endDate;
+        campaign.IsActive = isActive;
+
+        await _campaignRepository.UpdateAsync(campaign);
+        return MapToDto(campaign);
     }
 
-    public Task<object?> GetCampaignReport(int campaignId)
+    public async Task<object?> GetCampaignReport(int campaignId)
     {
-        var report = new
+        var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+        if (campaign == null) return null;
+
+        return new
         {
             CampaignId = campaignId,
-            TotalOrders = 10,
-            TotalRevenue = 5000.00m,
-            TotalUsers = 5
+            CampaignName = campaign.Name,
+            TotalOrders = 0,
+            TotalRevenue = 0.00m,
+            TotalUsers = 0
         };
-        return Task.FromResult<object?>(report);
+    }
+
+    private static CampaignDto MapToDto(Campaign campaign)
+    {
+        return new CampaignDto
+        {
+            Id = campaign.Id,
+            Name = campaign.Name,
+            Slug = campaign.Slug,
+            SupplierId = campaign.SupplierId,
+            StartDate = campaign.StartDate,
+            EndDate = campaign.EndDate,
+            IsActive = campaign.IsActive,
+            IsDefault = campaign.IsDefault,
+            AllowedProvinces = campaign.AllowedProvinces,
+            AllowedCities = campaign.AllowedCities,
+            MinOrderQty = campaign.MinOrderQty,
+            MaxOrderQty = campaign.MaxOrderQty
+        };
     }
 }

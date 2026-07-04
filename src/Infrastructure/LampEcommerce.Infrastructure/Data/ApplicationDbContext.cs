@@ -11,15 +11,18 @@ public class ApplicationDbContext : DbContext
     }
 
     // DbSets for all entities
-    public DbSet<User> Users { get; set; }
-    public DbSet<Address> Addresses { get; set; }
-    public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<Campaign> Campaigns { get; set; }
-    public DbSet<Product> Products { get; set; }
-    public DbSet<CampaignProduct> CampaignProducts { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
-    public DbSet<InvoiceAuditLog> InvoiceAuditLogs { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Address> Addresses { get; set; } = null!;
+    public DbSet<Supplier> Suppliers { get; set; } = null!;
+    public DbSet<Campaign> Campaigns { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<CampaignProduct> CampaignProducts { get; set; } = null!;
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<InvoiceAuditLog> InvoiceAuditLogs { get; set; } = null!;
+    public DbSet<ShippingMethod> ShippingMethods { get; set; } = null!;
+    public DbSet<Ticket> Tickets { get; set; } = null!;
+    public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +87,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Slug).IsRequired().HasMaxLength(200);
+            entity.HasIndex(e => e.Slug).IsUnique();
             entity.Property(e => e.AllowedProvinces).HasMaxLength(500);
             entity.Property(e => e.AllowedCities).HasMaxLength(500);
 
@@ -183,6 +188,50 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Reason).IsRequired().HasMaxLength(500);
 
             entity.HasIndex(e => e.OrderId);
+        });
+
+        // ShippingMethod configuration
+        modelBuilder.Entity<ShippingMethod>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.LogoUrl).HasMaxLength(500);
+            entity.Property(e => e.ApiKey).HasMaxLength(200);
+            entity.Property(e => e.ApiUrl).HasMaxLength(500);
+            entity.Property(e => e.BaseCost).HasColumnType("decimal(18,2)");
+        });
+
+        // Ticket configuration
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Subject).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Priority).IsRequired().HasMaxLength(20).HasDefaultValue("Low");
+
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // TicketMessage configuration
+        modelBuilder.Entity<TicketMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(2000);
+
+            entity.HasOne(e => e.Ticket)
+                  .WithMany(e => e.Messages)
+                  .HasForeignKey(e => e.TicketId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.SenderUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.SenderUserId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

@@ -29,8 +29,14 @@ export class HomeComponent implements OnInit {
   loadCampaign(): void {
     this.campaignService.getActiveCampaign().subscribe({
       next: (data) => {
-        this.campaign = data;
-        this.loadProducts(data.id);
+        if (data) {
+          this.campaign = data;
+          this.loadProducts(data.id);
+        } else {
+          this.campaign = null;
+          this.products = [];
+          this.loading = false;
+        }
       },
       error: (err) => {
         console.error('Error loading campaign:', err);
