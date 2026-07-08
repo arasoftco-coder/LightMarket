@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../services/cart.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { CardModule } from 'primeng/card';
@@ -20,7 +20,7 @@ interface CartItem {
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputNumberModule, CardModule],
+  imports: [CommonModule, FormsModule, ButtonModule, InputNumberModule, CardModule, RouterLink],
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css']
 })

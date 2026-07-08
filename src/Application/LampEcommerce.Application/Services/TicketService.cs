@@ -8,16 +8,10 @@ using System.Threading.Tasks;
 
 namespace LampEcommerce.Application.Services;
 
-public class TicketService : ITicketService
+public class TicketService(ITicketRepository ticketRepository, IUserRepository userRepository) : ITicketService
 {
-    private readonly ITicketRepository _ticketRepository;
-    private readonly IUserRepository _userRepository;
-
-    public TicketService(ITicketRepository ticketRepository, IUserRepository userRepository)
-    {
-        _ticketRepository = ticketRepository;
-        _userRepository = userRepository;
-    }
+    private readonly ITicketRepository _ticketRepository = ticketRepository;
+    private readonly IUserRepository _userRepository = userRepository;
 
     public async Task<TicketDto?> CreateTicket(int userId, string category, string subject, string message)
     {
@@ -29,20 +23,18 @@ public class TicketService : ITicketService
             Message = message,
             Status = "Open",
             Priority = "Medium",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            Messages = [
+                new TicketMessage
+                {
+                    SenderUserId = userId,
+                    Message = message,
+                    CreatedAt = DateTime.UtcNow
+                }
+            ]
         };
 
         var created = await _ticketRepository.AddAsync(ticket);
-
-        // Add initial message
-        var initialMsg = new TicketMessage
-        {
-            TicketId = created.Id,
-            SenderUserId = userId,
-            Message = message,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _ticketRepository.AddMessageAsync(initialMsg);
 
         return await GetTicketDetails(created.Id);
     }

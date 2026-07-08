@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { TicketService } from '../../services/ticket.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
@@ -13,7 +15,7 @@ interface Ticket {
   subject: string;
   category: string;
   status: string;
-  date: string;
+  createdAt: string;
   messages?: any[];
 }
 
@@ -36,19 +38,22 @@ export class TicketsComponent implements OnInit {
     { label: 'سایر', value: 'Other' }
   ];
 
-  constructor() {}
+  constructor(
+    private ticketService: TicketService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadTickets();
   }
 
   loadTickets(): void {
-    // TODO: Call ticket service to load tickets
-    // Placeholder data
-    this.tickets = [
-      { id: 1, subject: 'مشکل در پرداخت', category: 'Payment', status: 'Open', date: '1403/01/15' },
-      { id: 2, subject: 'تاخیر در ارسال', category: 'Orders', status: 'Closed', date: '1403/01/10' }
-    ];
+    this.ticketService.getUserTickets().subscribe({
+      next: (data: any) => {
+        this.tickets = data || [];
+      },
+      error: (err: any) => console.error('Error loading tickets:', err)
+    });
   }
 
   openNewTicketDialog(): void {
@@ -62,16 +67,35 @@ export class TicketsComponent implements OnInit {
       return;
     }
     
-    // TODO: Call ticket service to create ticket
-    alert('تیکت شما با موفقیت ثبت شد.');
-    this.showDialog = false;
-    this.loadTickets();
+    this.ticketService.createTicket(this.newTicket).subscribe({
+      next: () => {
+        alert('تیکت شما با موفقیت ثبت شد.');
+        this.showDialog = false;
+        this.loadTickets();
+      },
+      error: (err: any) => {
+        console.error('Error creating ticket:', err);
+        alert('خطا در ثبت تیکت.');
+      }
+    });
   }
 
   viewTicket(ticket: Ticket): void {
-    // TODO: Implement ticket detail view
-    alert('نمایش جزئیات تیکت: ' + ticket.subject);
+    this.router.navigate(['/panel/tickets', ticket.id]);
   }
 
-  getCategoryFa(cat: string): string { return cat === 'General' ? 'عمومی' : cat; }
+  getCategoryFa(cat: string): string {
+    const map: { [key: string]: string } = {
+      'Technical': 'پشتیبانی فنی',
+      'Orders': 'سفارش‌ها',
+      'Payment': 'پرداخت',
+      'Other': 'سایر'
+    };
+    return map[cat] || cat;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('fa-IR');
+  }
 }

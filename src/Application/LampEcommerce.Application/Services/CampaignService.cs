@@ -8,24 +8,17 @@ using LampEcommerce.Domain.Entities;
 
 namespace LampEcommerce.Application.Services;
 
-public class CampaignService : ICampaignService
+public class CampaignService(
+    ICampaignRepository campaignRepository,
+    ICampaignProductRepository campaignProductRepository,
+    IUserRepository userRepository,
+    ISupplierRepository supplierRepository) : ICampaignService
 {
-    private readonly ICampaignRepository _campaignRepository;
-    private readonly ICampaignProductRepository _campaignProductRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly ISupplierRepository _supplierRepository;
+    private readonly ICampaignRepository _campaignRepository = campaignRepository;
+    private readonly ICampaignProductRepository _campaignProductRepository = campaignProductRepository;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly ISupplierRepository _supplierRepository = supplierRepository;
 
-    public CampaignService(
-        ICampaignRepository campaignRepository,
-        ICampaignProductRepository campaignProductRepository,
-        IUserRepository userRepository,
-        ISupplierRepository supplierRepository)
-    {
-        _campaignRepository = campaignRepository;
-        _campaignProductRepository = campaignProductRepository;
-        _userRepository = userRepository;
-        _supplierRepository = supplierRepository;
-    }
 
     public async Task<CampaignDto?> GetActiveCampaign()
     {
@@ -102,12 +95,12 @@ public class CampaignService : ICampaignService
             var allowedProvincesList = campaign.AllowedProvinces?
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(p => p.Trim().ToLower())
-                .ToList() ?? new List<string>();
+                .ToList() ?? [];
 
             var allowedCitiesList = campaign.AllowedCities?
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(c => c.Trim().ToLower())
-                .ToList() ?? new List<string>();
+                .ToList() ?? [];
 
             var matchesGeo = user.Addresses.Any(addr =>
                 (allowedProvincesList.Count == 0 || allowedProvincesList.Contains(addr.Province.Trim().ToLower())) &&
@@ -185,6 +178,12 @@ public class CampaignService : ICampaignService
 
         await _campaignRepository.UpdateAsync(campaign);
         return MapToDto(campaign);
+    }
+
+    public async Task<CampaignDto?> GetCampaignById(int id)
+    {
+        var campaign = await _campaignRepository.GetByIdAsync(id);
+        return campaign == null ? null : MapToDto(campaign);
     }
 
     public async Task<object?> GetCampaignReport(int campaignId)

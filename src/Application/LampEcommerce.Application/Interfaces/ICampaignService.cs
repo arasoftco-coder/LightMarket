@@ -11,5 +11,6 @@ public interface ICampaignService
     Task<IEnumerable<CampaignDto>> GetAllCampaigns();
     Task<CampaignDto?> CreateCampaign(string name, string slug, DateTime startDate, DateTime endDate, bool isActive);
     Task<CampaignDto?> UpdateCampaign(int id, string name, string slug, DateTime startDate, DateTime endDate, bool isActive);
+    Task<CampaignDto?> GetCampaignById(int id);
     Task<object?> GetCampaignReport(int campaignId);
 }

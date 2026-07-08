@@ -21,15 +21,12 @@ public class UserController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-    [HttpGet("{userId}/profile")]
-    public async Task<IActionResult> GetUserProfile(int userId)
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetUserProfile()
     {
         try
         {
-            var currentUserId = GetUserId();
-            if (currentUserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
-
+            var userId = GetUserId();
             var user = await _userService.GetUserProfile(userId);
             if (user == null)
                 return NotFound(new { success = false, message = "User not found" });
@@ -42,15 +39,12 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPut("{userId}/profile")]
-    public async Task<IActionResult> UpdateUserProfile(int userId, [FromBody] UpdateUserRequest request)
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserRequest request)
     {
         try
         {
-            var currentUserId = GetUserId();
-            if (currentUserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
-
+            var userId = GetUserId();
             var user = await _userService.UpdateUserProfile(userId, request.FullName, request.Email);
             return Ok(new { success = true, data = user });
         }
@@ -61,15 +55,12 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpGet("{userId}/addresses")]
-    public async Task<IActionResult> GetUserAddresses(int userId)
+    [HttpGet("addresses")]
+    public async Task<IActionResult> GetUserAddresses()
     {
         try
         {
-            var currentUserId = GetUserId();
-            if (currentUserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
-
+            var userId = GetUserId();
             var addresses = await _userService.GetUserAddresses(userId);
             return Ok(new { success = true, data = addresses });
         }
@@ -80,15 +71,12 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPost("{userId}/addresses")]
-    public async Task<IActionResult> AddAddress(int userId, [FromBody] AddAddressRequest request)
+    [HttpPost("addresses")]
+    public async Task<IActionResult> AddAddress([FromBody] AddAddressRequest request)
     {
         try
         {
-            var currentUserId = GetUserId();
-            if (currentUserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
-
+            var userId = GetUserId();
             var address = await _userService.AddAddress(userId, request.FullAddress, request.City, request.PostalCode, request.Phone);
             return Ok(new { success = true, data = address });
         }

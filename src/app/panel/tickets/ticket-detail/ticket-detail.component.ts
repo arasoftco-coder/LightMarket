@@ -96,6 +96,16 @@ export class TicketDetailComponent implements OnInit {
     return labels[status] || status;
   }
 
+  getCategoryLabel(category: string): string {
+    const labels: Record<string, string> = {
+      'Technical': 'پشتیبانی فنی',
+      'Orders': 'سفارش‌ها',
+      'Payment': 'پرداخت',
+      'Other': 'سایر'
+    };
+    return labels[category] || category;
+  }
+
   getPriorityClass(priority: string): string {
     switch (priority) {
       case 'high': return 'priority-high';

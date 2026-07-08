@@ -6,10 +6,12 @@ import { map } from 'rxjs/operators';
 export interface Campaign {
   id: number;
   name: string;
+  slug?: string;
   supplierId: number;
   startDate: string;
   endDate: string;
   status: string;
+  isActive: boolean;
 }
 
 export interface Supplier {
@@ -67,6 +69,12 @@ export class AdminService {
     return this.http.delete<any>(`${this.apiUrl}/campaigns/${id}`);
   }
 
+  getCampaignById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/campaigns/${id}`).pipe(
+      map(res => res.data)
+    );
+  }
+
   getCampaignReport(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/campaigns/${id}/report`).pipe(
       map(res => res.data)
@@ -80,6 +88,12 @@ export class AdminService {
     );
   }
 
+  getSupplierById(id: number): Observable<Supplier> {
+    return this.http.get<any>(`${this.apiUrl}/suppliers/${id}`).pipe(
+      map(res => res.data)
+    );
+  }
+
   createSupplier(data: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/suppliers`, data).pipe(
       map(res => res.data)
@@ -88,6 +102,23 @@ export class AdminService {
 
   updateSupplier(id: number, data: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/suppliers/${id}`, data).pipe(
+      map(res => res.data)
+    );
+  }
+
+  // Settings
+  getSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  saveSettings(settings: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/settings`, settings);
+  }
+
+  getPublicSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings/public`).pipe(
       map(res => res.data)
     );
   }
@@ -143,7 +174,7 @@ export class AdminService {
     return this.http.post<any>(`${this.apiUrl}/products/import-excel/confirm`, items);
   }
 
-  scrapeProducts(supplierId: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/products/scrape/${supplierId}`, {});
+  scrapeProducts(supplierId: number, data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/products/scrape/${supplierId}`, data);
   }
 }

@@ -19,7 +19,7 @@ import { AdminService } from '../../services/admin.service';
             <input type="text" [(ngModel)]="settings.smsApiKey" name="smsApiKey" />
           </div>
           <div class="form-group">
-            <label>شناسه فرستنده:</label>
+            <label>شناسه فرستنده (Sender ID):</label>
             <input type="text" [(ngModel)]="settings.senderId" name="senderId" />
           </div>
         </div>
@@ -47,10 +47,15 @@ import { AdminService } from '../../services/admin.service';
         <div class="settings-section">
           <h3>محتوای فوتر</h3>
           <div class="form-group">
-            <label>لینک‌ها:</label>
-            <textarea [(ngModel)]="settings.footerLinks" name="footerLinks" rows="3"></textarea>
+            <label style="margin-bottom: 12px; display: block;">لینک‌های فوتر:</label>
+            <div *ngFor="let link of settings.footerLinks; let i = index" class="link-item">
+              <input type="text" [(ngModel)]="link.title" placeholder="عنوان لینک (مثال: تماس با ما)" name="link_title_{{i}}" />
+              <input type="text" [(ngModel)]="link.url" placeholder="آدرس لینک (مثال: /contact)" name="link_url_{{i}}" />
+              <button type="button" (click)="removeLink(i)" class="btn-danger-sm">حذف</button>
+            </div>
+            <button type="button" (click)="addLink()" class="btn-secondary-sm">افزودن لینک جدید</button>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="margin-top: 25px;">
             <label>اطلاعات تماس:</label>
             <textarea [(ngModel)]="settings.contactInfo" name="contactInfo" rows="3"></textarea>
           </div>
@@ -67,6 +72,10 @@ import { AdminService } from '../../services/admin.service';
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
     .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-family: inherit; }
+    .link-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .link-item input { flex: 1; }
+    .btn-danger-sm { padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-secondary-sm { padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; }
     .btn-primary { padding: 12px 30px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
   `]
 })
@@ -77,7 +86,7 @@ export class AdminSettingsComponent implements OnInit {
     paymentMerchantId: '',
     callbackUrl: '',
     magicLinkExpiry: 30,
-    footerLinks: '',
+    footerLinks: [],
     contactInfo: ''
   };
 
@@ -88,19 +97,43 @@ export class AdminSettingsComponent implements OnInit {
   }
 
   loadSettings(): void {
-    // Load settings from API
-    this.settings = {
-      smsApiKey: 'YOUR_SMS_API_KEY',
-      senderId: 'LightMarket',
-      paymentMerchantId: 'YOUR_MERCHANT_ID',
-      callbackUrl: 'https://lightmarket.ir/payment/callback',
-      magicLinkExpiry: 30,
-      footerLinks: 'تماس با ما | قوانین و مقررات | حریم خصوصی',
-      contactInfo: 'تلفن: 021-12345678 | ایمیل: info@lightmarket.ir'
-    };
+    this.adminService.getSettings().subscribe({
+      next: (data) => {
+        this.settings = data || {
+          smsApiKey: '',
+          senderId: '',
+          paymentMerchantId: '',
+          callbackUrl: '',
+          magicLinkExpiry: 30,
+          footerLinks: [],
+          contactInfo: ''
+        };
+      },
+      error: (err) => console.error('Error loading settings', err)
+    });
+  }
+
+  addLink(): void {
+    if (!this.settings.footerLinks) {
+      this.settings.footerLinks = [];
+    }
+    this.settings.footerLinks.push({ title: '', url: '' });
+  }
+
+  removeLink(index: number): void {
+    this.settings.footerLinks.splice(index, 1);
   }
 
   saveSettings(): void {
-    alert('تنظیمات با موفقیت ذخیره شد');
+    this.adminService.saveSettings(this.settings).subscribe({
+      next: (res: any) => {
+        alert(res.message || 'تنظیمات با موفقیت ذخیره شد');
+        this.loadSettings();
+      },
+      error: (err) => {
+        console.error('Error saving settings', err);
+        alert('خطا در ذخیره تنظیمات');
+      }
+    });
   }
 }

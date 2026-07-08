@@ -11,6 +11,7 @@ using LampEcommerce.Application.Models;
 using LampEcommerce.Infrastructure.Services;
 using LampEcommerce.WebAPI.Middleware;
 using LampEcommerce.WebAPI.Services;
+using LampEcommerce.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
+builder.Services.AddScoped<IMagicLinkService, MagicLinkService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();
@@ -129,6 +132,31 @@ using (var scope = app.Services.CreateScope())
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
+
+        // Seed/Update user 09122307821 to Admin
+        var adminPhone = "09122307821";
+        var adminUser = dbContext.Users.FirstOrDefault(u => u.PhoneNumber == adminPhone);
+        if (adminUser != null)
+        {
+            if (adminUser.Role != "Admin")
+            {
+                adminUser.Role = "Admin";
+                dbContext.SaveChanges();
+            }
+        }
+        else
+        {
+            var newUser = new User
+            {
+                PhoneNumber = adminPhone,
+                FullName = "مدیر سیستم",
+                Role = "Admin",
+                PasswordHash = string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+            dbContext.Users.Add(newUser);
+            dbContext.SaveChanges();
+        }
     }
     catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 2714)
     {

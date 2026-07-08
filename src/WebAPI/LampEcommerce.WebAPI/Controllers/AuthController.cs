@@ -73,7 +73,7 @@ public class AuthController : ControllerBase
 
             var user = result.User;
             var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
-            return Ok(new { success = true, token = token, isNewUser = result.IsNewUser, user = new { user.Id, user.PhoneNumber, user.FullName } });
+            return Ok(new { success = true, token = token, isNewUser = result.IsNewUser, user = new { user.Id, user.PhoneNumber, user.FullName, user.Role } });
         }
         catch (Exception ex)
         {
@@ -95,7 +95,7 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { success = false, message = "Invalid phone number or password" });
 
             var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
-            return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
+            return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName, user.Role } });
         }
         catch (Exception ex)
         {
@@ -111,7 +111,7 @@ public class AuthController : ControllerBase
         {
             var user = await _authService.Register(request.PhoneNumber, request.FullName);
             var token = _jwtTokenGenerator.GenerateToken(user.Id, user.PhoneNumber, user.Role);
-            return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName } });
+            return Ok(new { success = true, token = token, user = new { user.Id, user.PhoneNumber, user.FullName, user.Role } });
         }
         catch (Exception ex)
         {

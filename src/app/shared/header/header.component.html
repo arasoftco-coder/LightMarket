@@ -17,6 +17,7 @@
       </ng-container>
 
       <ng-template #loggedIn>
+        <button *ngIf="isAdmin" (click)="navigateTo('admin')" class="admin-btn">پنل مدیریت</button>
         <button (click)="navigateTo('panel/profile')" class="profile-btn">پنل کاربری</button>
         <button (click)="logout()" class="logout-btn">خروج</button>
       </ng-template>

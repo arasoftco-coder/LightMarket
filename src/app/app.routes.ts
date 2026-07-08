@@ -16,12 +16,18 @@ import { AdminOrderDetailComponent } from './admin/orders/order-detail.component
 import { AdminProductsComponent } from './admin/products/products.component';
 import { ExcelImportComponent } from './admin/products/excel-import.component';
 import { AdminSettingsComponent } from './admin/settings/settings.component';
+import { PaymentComponent } from './payment/payment.component';
+import { PaymentGatewayMockComponent } from './payment/payment-gateway-mock.component';
+import { PaymentVerifyComponent } from './payment/payment-verify.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'auth', component: AuthComponent },
   { path: 'cart', component: CartComponent },
   { path: 'checkout', component: CheckoutComponent },
+  { path: 'payment/:id', component: PaymentComponent },
+  { path: 'payment/gateway', component: PaymentGatewayMockComponent },
+  { path: 'payment/verify', component: PaymentVerifyComponent },
   { 
     path: 'panel', 
     component: UserPanelComponent,
@@ -29,7 +35,8 @@ export const routes: Routes = [
       { path: 'profile', loadComponent: () => import('./panel/profile/profile.component').then(m => m.ProfileComponent) },
       { path: 'addresses', loadComponent: () => import('./panel/addresses/addresses.component').then(m => m.AddressesComponent) },
       { path: 'orders', loadComponent: () => import('./panel/orders/orders.component').then(m => m.OrdersComponent) },
-      { path: 'tickets', loadComponent: () => import('./panel/tickets/tickets.component').then(m => m.TicketsComponent) }
+      { path: 'tickets', loadComponent: () => import('./panel/tickets/tickets.component').then(m => m.TicketsComponent) },
+      { path: 'tickets/:id', loadComponent: () => import('./panel/tickets/ticket-detail/ticket-detail.component').then(m => m.TicketDetailComponent) }
     ]
   },
   { 

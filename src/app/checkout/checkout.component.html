@@ -37,8 +37,14 @@
             class="p-button-outlined" (click)="showNewAddressForm = !showNewAddressForm"></button>
 
     <div *ngIf="showNewAddressForm" class="new-address-form">
-      <input type="text" pInputText placeholder="استان" [(ngModel)]="newAddress.province" />
-      <input type="text" pInputText placeholder="شهر" [(ngModel)]="newAddress.city" />
+      <div style="margin-bottom: 0.75rem;">
+        <p-dropdown [options]="provinces" [(ngModel)]="newAddress.province" (onChange)="onProvinceChange()" 
+                    placeholder="انتخاب استان" [style]="{ width: '100%' }"></p-dropdown>
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <p-dropdown [options]="cities" [(ngModel)]="newAddress.city" [disabled]="!newAddress.province"
+                    placeholder="انتخاب شهر" [style]="{ width: '100%' }"></p-dropdown>
+      </div>
       <input type="text" pInputText placeholder="خیابان، پلاک، واحد" [(ngModel)]="newAddress.street" />
       <input type="text" pInputText placeholder="کد پستی" [(ngModel)]="newAddress.postalCode" />
       <button pButton type="button" label="ذخیره آدرس" icon="pi pi-check" (click)="addNewAddress()"></button>

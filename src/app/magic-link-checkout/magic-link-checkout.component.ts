@@ -69,13 +69,6 @@ export class MagicLinkCheckoutComponent implements OnInit {
     if (!this.invoice) return;
     
     this.processing = true;
-    
-    // TODO: Call payment API
-    // For now, simulate redirect to payment gateway
-    setTimeout(() => {
-      this.processing = false;
-      alert('در حال انتقال به درگاه پرداخت...');
-      // this.router.navigate(['/payment/gateway', this.invoice.id]);
-    }, 1000);
+    this.router.navigate(['/payment', this.invoice.id]);
   }
 }

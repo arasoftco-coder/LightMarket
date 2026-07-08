@@ -1,0 +1,78 @@
+<div class="payment-container" dir="rtl" *ngIf="!loading && order">
+  <p-card header="پرداخت سفارش">
+    <div class="order-details-summary">
+      <div class="summary-row">
+        <span>شماره سفارش:</span>
+        <span class="value">{{ order.orderNumber }}</span>
+      </div>
+      <div class="summary-row">
+        <span>مبلغ کل سفارش:</span>
+        <span class="value price">{{ order.totalAmount | number:'1.0-0' }} تومان</span>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="payment-method-selection">
+      <h3>انتخاب روش پرداخت</h3>
+      
+      <div class="method-option">
+        <p-radioButton name="paymentMethod" value="online" [(ngModel)]="paymentMethod" inputId="opt-online"></p-radioButton>
+        <label for="opt-online" class="method-label">
+          <i class="pi pi-globe"></i>
+          <div>
+            <strong>پرداخت آنلاین (درگاه پرداخت شبیه‌ساز)</strong>
+            <p>انتقال به درگاه اینترنتی و پرداخت سریع با تمامی کارت‌های بانکی</p>
+          </div>
+        </label>
+      </div>
+
+      <div class="method-option">
+        <p-radioButton name="paymentMethod" value="cardToCard" [(ngModel)]="paymentMethod" inputId="opt-card"></p-radioButton>
+        <label for="opt-card" class="method-label">
+          <i class="pi pi-credit-card"></i>
+          <div>
+            <strong>انتقال کارت به کارت (ثبت فیش واریزی)</strong>
+            <p>واریز وجه به شماره کارت فروشگاه و ثبت شماره پیگیری تراکنش</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Payment details conditionally based on choice -->
+    <div class="method-details" *ngIf="paymentMethod === 'cardToCard'">
+      <div class="bank-details-card">
+        <div class="bank-row">
+          <span>شماره کارت:</span>
+          <strong class="copyable-text">{{ cardNumber }}</strong>
+        </div>
+        <div class="bank-row">
+          <span>نام صاحب حساب:</span>
+          <strong>{{ cardHolderName }}</strong>
+        </div>
+      </div>
+
+      <div class="tracking-input-wrapper">
+        <label for="tracking-code">شماره پیگیری / ارجاع تراکنش:</label>
+        <input type="text" pInputText id="tracking-code" [(ngModel)]="trackingCode" placeholder="مثال: 123456" />
+      </div>
+    </div>
+
+    <div class="method-details" *ngIf="paymentMethod === 'online'">
+      <p class="info-text">
+        <i class="pi pi-info-circle"></i>
+        پس از کلیک بر روی دکمه پرداخت، به صفحه درگاه شبیه‌سازی‌شده پرداخت بانکی هدایت خواهید شد.
+      </p>
+    </div>
+
+    <div class="actions-wrapper">
+      <button pButton type="button" label="پرداخت و نهایی‌سازی" icon="pi pi-check" 
+              [loading]="submitting" class="p-button-success" (click)="processPayment()"></button>
+    </div>
+  </p-card>
+</div>
+
+<div class="loading-state-wrapper" *ngIf="loading">
+  <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+  <p>در حال بارگذاری اطلاعات سفارش...</p>
+</div>

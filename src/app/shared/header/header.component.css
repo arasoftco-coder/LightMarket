@@ -104,3 +104,19 @@
 .logout-btn:hover {
   background: #c0392b;
 }
+
+.admin-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #9b59b6;
+  color: white;
+}
+
+.admin-btn:hover {
+  background: #8e44ad;
+}

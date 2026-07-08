@@ -1,13 +1,15 @@
 using LampEcommerce.Application.Models;
+using LampEcommerce.Application.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace LampEcommerce.Application.Services;
 
-public class PaymentGatewayService
+public class PaymentGatewayService : IPaymentGatewayService
 {
-    private readonly string _gatewayApiKey = "your_payment_gateway_api_key";
     private readonly string _gatewayBaseUrl = "https://api.paymentgateway.com";
 
-    public Task<PaymentRequestResult> CreatePaymentRequestAsync(int orderId, decimal amount, string callbackUrl)
+    public Task<string> CreatePaymentRequest(int orderId, decimal amount, string callbackUrl)
     {
         // Call payment gateway API (placeholder)
         // In Phase 3, this will make actual HTTP call to payment gateway
@@ -15,27 +17,55 @@ public class PaymentGatewayService
         var authority = $"AUTH_{orderId}_{Guid.NewGuid():N}";
         var paymentUrl = $"{_gatewayBaseUrl}/payment?authority={authority}&amount={amount}";
         
-        var result = new PaymentRequestResult
+        Console.WriteLine($"Creating payment request for order {orderId}, amount: {amount}");
+        Console.WriteLine($"Payment URL: {paymentUrl}");
+        
+        return Task.FromResult(paymentUrl);
+    }
+
+    public Task<PaymentResult> VerifyPayment(string authority, string status)
+    {
+        // Verify with gateway
+        // Update order status
+        // In Phase 3, this will make actual HTTP call to payment gateway for verification
+        
+        if (status != "OK")
+        {
+            return Task.FromResult(new PaymentResult
+            {
+                Success = false,
+                Message = "Payment verification failed. Status: " + status
+            });
+        }
+        
+        // Simulate successful verification
+        var trackingCode = $"TRK_{Guid.NewGuid():N}";
+        
+        return Task.FromResult(new PaymentResult
+        {
+            Success = true,
+            Message = $"Payment verified successfully. Tracking Code: {trackingCode}"
+        });
+    }
+
+    // Keep original async mock methods to maintain backward compatibility in case they are used in other files or tests
+    public Task<PaymentRequestResult> CreatePaymentRequestAsync(int orderId, decimal amount, string callbackUrl)
+    {
+        var authority = $"AUTH_{orderId}_{Guid.NewGuid():N}";
+        var paymentUrl = $"{_gatewayBaseUrl}/payment?authority={authority}&amount={amount}";
+        
+        return Task.FromResult(new PaymentRequestResult
         {
             Success = true,
             Authority = authority,
             PaymentUrl = paymentUrl,
             Amount = amount,
             OrderId = orderId
-        };
-        
-        Console.WriteLine($"Creating payment request for order {orderId}, amount: {amount}");
-        Console.WriteLine($"Payment URL: {paymentUrl}");
-        
-        return Task.FromResult(result);
+        });
     }
 
     public Task<PaymentVerificationResult> VerifyPaymentAsync(string authority, string status)
     {
-        // Verify with gateway
-        // Update order status
-        // In Phase 3, this will make actual HTTP call to payment gateway for verification
-        
         if (status != "OK")
         {
             return Task.FromResult(new PaymentVerificationResult
@@ -46,7 +76,6 @@ public class PaymentGatewayService
             });
         }
         
-        // Simulate successful verification
         var trackingCode = $"TRK_{Guid.NewGuid():N}";
         
         return Task.FromResult(new PaymentVerificationResult

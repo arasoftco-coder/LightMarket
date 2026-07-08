@@ -6,23 +6,25 @@ using LampEcommerce.Application.DTOs;
 namespace LampEcommerce.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/orders")]
 [Authorize]
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IMagicLinkService _magicLinkService;
     private readonly ILogger<OrderController> _logger;
 
-    public OrderController(IOrderService orderService, ILogger<OrderController> logger)
+    public OrderController(IOrderService orderService, IMagicLinkService magicLinkService, ILogger<OrderController> logger)
     {
         _orderService = orderService;
+        _magicLinkService = magicLinkService;
         _logger = logger;
     }
 
     private int GetUserId() => int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     private bool IsAdmin() => User.IsInRole("Admin");
 
-    [HttpPost("create")]
+    [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
         try
@@ -119,6 +121,45 @@ public class OrderController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting order details");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserOrders()
+    {
+        try
+        {
+            var userId = GetUserId();
+            var orders = await _orderService.GetUserOrders(userId);
+            return Ok(new { success = true, data = orders });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user orders");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("magic-link/{token}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ValidateMagicLink(string token)
+    {
+        try
+        {
+            var validation = await _magicLinkService.ValidatePaymentLink(token);
+            if (validation == null || !validation.IsValid)
+                return BadRequest(new { success = false, message = "توکن منقضی یا نامعتبر است." });
+
+            var order = await _orderService.GetOrderDetails(validation.OrderId);
+            if (order == null)
+                return NotFound(new { success = false, message = "Order not found" });
+
+            return Ok(new { success = true, data = order });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating magic link");
             return BadRequest(new { success = false, message = ex.Message });
         }
     }

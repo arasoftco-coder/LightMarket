@@ -6,7 +6,7 @@ using LampEcommerce.Application.DTOs;
 namespace LampEcommerce.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/tickets")]
 [Authorize]
 public class TicketController : ControllerBase
 {
@@ -21,7 +21,7 @@ public class TicketController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-    [HttpPost("create")]
+    [HttpPost]
     public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
     {
         try
@@ -37,15 +37,12 @@ public class TicketController : ControllerBase
         }
     }
 
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserTickets(int userId)
+    [HttpGet]
+    public async Task<IActionResult> GetUserTickets()
     {
         try
         {
-            var currentUserId = GetUserId();
-            if (currentUserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
-
+            var userId = GetUserId();
             var tickets = await _ticketService.GetUserTickets(userId);
             return Ok(new { success = true, data = tickets });
         }

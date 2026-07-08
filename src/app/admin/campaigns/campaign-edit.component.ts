@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-admin-campaign-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="campaign-edit-page">
       <h2>{{ isEdit ? 'ویرایش کمپین' : 'ایجاد کمپین جدید' }}</h2>
@@ -15,6 +15,10 @@ import { ActivatedRoute, Router } from '@angular/router';
         <div class="form-group">
           <label>نام کمپین:</label>
           <input type="text" [(ngModel)]="campaign.name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>لینک اختصاصی (Slug):</label>
+          <input type="text" [(ngModel)]="campaign.slug" name="slug" required placeholder="مثال: summer2024" />
         </div>
         <div class="form-group">
           <label>تأمین‌کننده:</label>
@@ -32,6 +36,12 @@ import { ActivatedRoute, Router } from '@angular/router';
             <input type="date" [(ngModel)]="campaign.endDate" name="endDate" />
           </div>
         </div>
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="campaign.isActive" name="isActive" />
+            فعال بودن کمپین
+          </label>
+        </div>
         <div class="form-actions">
           <button type="submit" class="btn-primary">{{ isEdit ? 'ذخیره تغییرات' : 'ایجاد کمپین' }}</button>
           <button type="button" routerLink="/admin/campaigns" class="btn-secondary">انصراف</button>
@@ -45,6 +55,8 @@ import { ActivatedRoute, Router } from '@angular/router';
     .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
     .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-family: inherit; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .checkbox-group input { width: auto; }
     .form-actions { display: flex; gap: 10px; margin-top: 30px; }
     .btn-primary, .btn-secondary { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; }
     .btn-primary { background: #007bff; color: white; }
@@ -54,9 +66,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class AdminCampaignEditComponent implements OnInit {
   campaign: any = {
     name: '',
+    slug: '',
     supplierId: null,
     startDate: '',
-    endDate: ''
+    endDate: '',
+    isActive: true
   };
   suppliers: any[] = [];
   isEdit = false;
@@ -86,8 +100,14 @@ export class AdminCampaignEditComponent implements OnInit {
   }
 
   loadCampaign(id: number): void {
-    // In real app, fetch campaign details
-    this.campaign = { name: 'کمپین نمونه', supplierId: 1, startDate: '2024-01-01', endDate: '2024-12-31' };
+    this.adminService.getCampaignById(id).subscribe({
+      next: (data) => {
+        if (data.startDate) data.startDate = data.startDate.split('T')[0];
+        if (data.endDate) data.endDate = data.endDate.split('T')[0];
+        this.campaign = data;
+      },
+      error: (err) => console.error('Error loading campaign', err)
+    });
   }
 
   saveCampaign(): void {

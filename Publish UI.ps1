@@ -1,3 +1,7 @@
+param (
+    [switch]$NonInteractive
+)
+
 # ۱. تعریف مسیرها (آدرس‌ها را مطابق سیستم خودتان تغییر دهید)
 $UiProjectPath = "C:\projects\lightmarket"
 $DotNetWwwrootPath = "C:\Projects\LightMarket\src\WebAPI\LampEcommerce.WebAPI\wwwroot" # مسیر پوشه wwwroot پروژه دات‌نت
@@ -11,8 +15,10 @@ npm run build
 # بررسی اینکه آیا بیلد با موفقیت انجام شده یا خیر
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error: Build failed. Process aborted." -ForegroundColor Red
-    Read-Host "Press Enter to exit..."
-    exit
+    if (-not $NonInteractive) {
+        Read-Host "Press Enter to exit..."
+    }
+    exit 1
 }
 
 Write-Host "--- Cleaning old files from wwwroot ---" -ForegroundColor Yellow
@@ -38,4 +44,6 @@ if (Test-Path $BuildOutputDir) {
     Write-Host "Error: Build output directory not found at $BuildOutputDir" -ForegroundColor Red
 }
 
-Read-Host "Press Enter to close..."
+if (-not $NonInteractive) {
+    Read-Host "Press Enter to close..."
+}

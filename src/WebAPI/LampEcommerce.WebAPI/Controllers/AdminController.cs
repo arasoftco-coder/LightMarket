@@ -17,51 +17,36 @@ namespace LampEcommerce.WebAPI.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class AdminController : ControllerBase
+public class AdminController(
+    ICampaignService campaignService,
+    IScraperService scraperService,
+    IFuzzyMatchingService fuzzyMatchingService,
+    IUserRepository userRepository,
+    IProductRepository productRepository,
+    ICampaignProductRepository campaignProductRepository,
+    IAdminService adminService,
+    IOrderService orderService,
+    ITicketService ticketService,
+    ITicketRepository ticketRepository,
+    ISupplierRepository supplierRepository,
+    IShippingMethodRepository shippingMethodRepository,
+    IConfiguration config,
+    ILogger<AdminController> logger) : ControllerBase
 {
-    private readonly ICampaignService _campaignService;
-    private readonly IScraperService _scraperService;
-    private readonly IFuzzyMatchingService _fuzzyMatchingService;
-    private readonly IUserRepository _userRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly ICampaignProductRepository _campaignProductRepository;
-    private readonly IAdminService _adminService;
-    private readonly IOrderService _orderService;
-    private readonly ITicketService _ticketService;
-    private readonly ITicketRepository _ticketRepository;
-    private readonly ISupplierRepository _supplierRepository;
-    private readonly IShippingMethodRepository _shippingMethodRepository;
-    private readonly ILogger<AdminController> _logger;
-
-    public AdminController(
-        ICampaignService campaignService,
-        IScraperService scraperService,
-        IFuzzyMatchingService fuzzyMatchingService,
-        IUserRepository userRepository,
-        IProductRepository productRepository,
-        ICampaignProductRepository campaignProductRepository,
-        IAdminService adminService,
-        IOrderService orderService,
-        ITicketService ticketService,
-        ITicketRepository ticketRepository,
-        ISupplierRepository supplierRepository,
-        IShippingMethodRepository shippingMethodRepository,
-        ILogger<AdminController> logger)
-    {
-        _campaignService = campaignService;
-        _scraperService = scraperService;
-        _fuzzyMatchingService = fuzzyMatchingService;
-        _userRepository = userRepository;
-        _productRepository = productRepository;
-        _campaignProductRepository = campaignProductRepository;
-        _adminService = adminService;
-        _orderService = orderService;
-        _ticketService = ticketService;
-        _ticketRepository = ticketRepository;
-        _supplierRepository = supplierRepository;
-        _shippingMethodRepository = shippingMethodRepository;
-        _logger = logger;
-    }
+    private readonly ICampaignService _campaignService = campaignService;
+    private readonly IScraperService _scraperService = scraperService;
+    private readonly IFuzzyMatchingService _fuzzyMatchingService = fuzzyMatchingService;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly ICampaignProductRepository _campaignProductRepository = campaignProductRepository;
+    private readonly IAdminService _adminService = adminService;
+    private readonly IOrderService _orderService = orderService;
+    private readonly ITicketService _ticketService = ticketService;
+    private readonly ITicketRepository _ticketRepository = ticketRepository;
+    private readonly ISupplierRepository _supplierRepository = supplierRepository;
+    private readonly IShippingMethodRepository _shippingMethodRepository = shippingMethodRepository;
+    private readonly IConfiguration _config = config;
+    private readonly ILogger<AdminController> _logger = logger;
 
     [HttpGet("dashboard/stats")]
     public async Task<IActionResult> GetDashboardStats()
@@ -104,6 +89,22 @@ public class AdminController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all campaigns");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("campaigns/{id}")]
+    public async Task<IActionResult> GetCampaignById(int id)
+    {
+        try
+        {
+            var campaign = await _campaignService.GetCampaignById(id);
+            if (campaign == null) return NotFound(new { success = false, message = "Campaign not found" });
+            return Ok(new { success = true, data = campaign });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting campaign by ID");
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
@@ -191,6 +192,22 @@ public class AdminController : ControllerBase
         }
     }
 
+    [HttpGet("suppliers/{id}")]
+    public async Task<IActionResult> GetSupplierById(int id)
+    {
+        try
+        {
+            var supplier = await _supplierRepository.GetByIdAsync(id);
+            if (supplier == null) return NotFound(new { success = false, message = "Supplier not found" });
+            return Ok(new { success = true, data = supplier });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting supplier by ID");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
     [HttpPost("suppliers")]
     public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierRequest request)
     {
@@ -252,7 +269,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("products/import-excel")]
-    public async Task<IActionResult> ImportProductsFromExcel(IFormFile file, [FromQuery] int? campaignId)
+    public async Task<IActionResult> ImportProductsFromExcel(IFormFile file)
     {
         try
         {
@@ -263,43 +280,42 @@ public class AdminController : ControllerBase
 
             var matches = new List<object>();
 
-            using (var stream = file.OpenReadStream())
+            using var stream = file.OpenReadStream();
+            using var reader = ExcelReaderFactory.CreateReader(stream);
+            
+            var result = reader.AsDataSet(new ExcelDataSetConfiguration()
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
-                {
-                    var result = reader.AsDataSet(new ExcelDataSetConfiguration()
-                    {
-                        ConfigureDataTable = (_) => new ExcelDataTableConfiguration() { UseHeaderRow = true }
-                    });
+                ConfigureDataTable = (_) => new ExcelDataTableConfiguration() { UseHeaderRow = true }
+            });
 
-                    if (result.Tables.Count == 0)
-                        return BadRequest(new { success = false, message = "Excel file is empty." });
+            if (result.Tables.Count == 0)
+                return BadRequest(new { success = false, message = "Excel file is empty." });
 
-                    var table = result.Tables[0];
-                    var allProducts = await _productRepository.GetAllAsync();
-                    var allProductNames = allProducts.Select(p => p.Name).ToList();
+            var table = result.Tables[0];
+            var allProducts = await _productRepository.GetAllAsync();
+            var allProductNames = allProducts.Select(p => p.Name).ToList();
 
-                    foreach (System.Data.DataRow row in table.Rows)
-                    {
-                        var name = row["Name"]?.ToString()?.Trim();
-                        if (string.IsNullOrWhiteSpace(name)) continue;
+            foreach (System.Data.DataRow row in table.Rows)
+            {
+                var name = row["Name"]?.ToString()?.Trim();
+                if (string.IsNullOrWhiteSpace(name)) continue;
 
-                        var description = row.Table.Columns.Contains("Description") ? row["Description"]?.ToString()?.Trim() : "";
-                        var basePriceText = row.Table.Columns.Contains("BasePrice") ? row["BasePrice"]?.ToString() : "0";
-                        var purchasePriceText = row.Table.Columns.Contains("PurchasePrice") ? row["PurchasePrice"]?.ToString() : "0";
-                        var sellingPriceText = row.Table.Columns.Contains("SellingPrice") ? row["SellingPrice"]?.ToString() : "0";
-                        var discountText = row.Table.Columns.Contains("Discount") ? row["Discount"]?.ToString() : "0";
-                        var stockText = row.Table.Columns.Contains("Stock") ? row["Stock"]?.ToString() : "0";
-                        var minQtyText = row.Table.Columns.Contains("MinQtyPerUser") ? row["MinQtyPerUser"]?.ToString() : "1";
-                        var maxQtyText = row.Table.Columns.Contains("MaxQtyPerUser") ? row["MaxQtyPerUser"]?.ToString() : "100";
+                var description = row.Table.Columns.Contains("Description") ? row["Description"]?.ToString()?.Trim() : "";
+                var basePriceText = row.Table.Columns.Contains("BasePrice") ? row["BasePrice"]?.ToString() : "0";
+                var purchasePriceText = row.Table.Columns.Contains("PurchasePrice") ? row["PurchasePrice"]?.ToString() : "0";
+                var sellingPriceText = row.Table.Columns.Contains("SellingPrice") ? row["SellingPrice"]?.ToString() : "0";
+                var discountText = row.Table.Columns.Contains("Discount") ? row["Discount"]?.ToString() : "0";
+                var stockText = row.Table.Columns.Contains("Stock") ? row["Stock"]?.ToString() : "0";
+                var minQtyText = row.Table.Columns.Contains("MinQtyPerUser") ? row["MinQtyPerUser"]?.ToString() : "1";
+                var maxQtyText = row.Table.Columns.Contains("MaxQtyPerUser") ? row["MaxQtyPerUser"]?.ToString() : "100";
 
-                        decimal.TryParse(basePriceText, out var basePrice);
-                        decimal.TryParse(purchasePriceText, out var purchasePrice);
-                        decimal.TryParse(sellingPriceText, out var sellingPrice);
-                        decimal.TryParse(discountText, out var discount);
-                        int.TryParse(stockText, out var stock);
-                        int.TryParse(minQtyText, out var minQty);
-                        int.TryParse(maxQtyText, out var maxQty);
+                _ = decimal.TryParse(basePriceText, out var basePrice);
+                _ = decimal.TryParse(purchasePriceText, out var purchasePrice);
+                _ = decimal.TryParse(sellingPriceText, out var sellingPrice);
+                _ = decimal.TryParse(discountText, out var discount);
+                _ = int.TryParse(stockText, out var stock);
+                _ = int.TryParse(minQtyText, out var minQty);
+                _ = int.TryParse(maxQtyText, out var maxQty);
 
                         var matchResult = await _fuzzyMatchingService.FindBestMatch(name, allProductNames);
                         var bestMatch = matchResult.FirstOrDefault();
@@ -321,8 +337,6 @@ public class AdminController : ControllerBase
                             maxQtyPerUser = maxQty
                         });
                     }
-                }
-            }
 
             return Ok(new { success = true, matches });
         }
@@ -664,12 +678,126 @@ public class AdminController : ControllerBase
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
+
+    private static readonly string SettingsFilePath = Path.Combine(AppContext.BaseDirectory, "site_settings.json");
+    private static readonly System.Text.Json.JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+
+    private async Task<SiteSettingsModel> LoadSettingsFromFile()
+    {
+        if (System.IO.File.Exists(SettingsFilePath))
+        {
+            try
+            {
+                var json = await System.IO.File.ReadAllTextAsync(SettingsFilePath);
+                var settings = System.Text.Json.JsonSerializer.Deserialize<SiteSettingsModel>(json);
+                if (settings != null) return settings;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reading site settings file");
+            }
+        }
+
+        // Fallback to appsettings
+        var smsSection = _config.GetSection("SmsSettings");
+        var paymentSection = _config.GetSection("PaymentGatewaySettings");
+
+        return new SiteSettingsModel
+        {
+            SmsApiKey = smsSection.GetValue<string>("ApiKey") ?? "YOUR_SMS_API_KEY",
+            SmsSenderId = smsSection.GetValue<string>("SenderId") ?? "LightMarket",
+            PaymentMerchantId = paymentSection.GetValue<string>("MerchantId") ?? "YOUR_MERCHANT_ID",
+            PaymentCallbackUrl = paymentSection.GetValue<string>("CallbackUrl") ?? "https://lightmarket.ir/payment/callback",
+            MagicLinkExpiry = 30,
+            FooterLinks =
+            [
+                new() { Title = "تماس با ما", Url = "/contact" },
+                new() { Title = "قوانین و مقررات", Url = "/rules" },
+                new() { Title = "حریم خصوصی", Url = "/privacy" }
+            ],
+            ContactInfo = "تلفن: 021-12345678 | ایمیل: info@lightmarket.ir"
+        };
+    }
+
+    private static async Task SaveSettingsToFile(SiteSettingsModel settings)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(settings, SerializerOptions);
+        await System.IO.File.WriteAllTextAsync(SettingsFilePath, json);
+    }
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettings()
+    {
+        try
+        {
+            var settings = await LoadSettingsFromFile();
+            return Ok(new { success = true, data = settings });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading system settings");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost("settings")]
+    public async Task<IActionResult> SaveSettings([FromBody] SiteSettingsModel settings)
+    {
+        try
+        {
+            await SaveSettingsToFile(settings);
+            return Ok(new { success = true, data = settings, message = "تنظیمات با موفقیت ذخیره شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving system settings");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("settings/public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicSettings()
+    {
+        try
+        {
+            var settings = await LoadSettingsFromFile();
+            var publicData = new
+            {
+                settings.FooterLinks,
+                settings.ContactInfo
+            };
+            return Ok(new { success = true, data = publicData });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading public settings");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+}
+
+public class FooterLink
+{
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+}
+
+public class SiteSettingsModel
+{
+    public string SmsApiKey { get; set; } = string.Empty;
+    public string SmsSenderId { get; set; } = string.Empty;
+    public string PaymentMerchantId { get; set; } = string.Empty;
+    public string PaymentCallbackUrl { get; set; } = string.Empty;
+    public int MagicLinkExpiry { get; set; } = 30;
+    public List<FooterLink> FooterLinks { get; set; } = [];
+    public string ContactInfo { get; set; } = string.Empty;
 }
 
 public class CreateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
 public class UpdateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
 public class CreateSupplierRequest { public string Name { get; set; } = string.Empty; public string WebsiteUrl { get; set; } = string.Empty; public string ContactInfo { get; set; } = string.Empty; public bool RequiresTrackingCode { get; set; } }
-public class ScrapeRequest { public string Url { get; set; } = string.Empty; public Dictionary<string, string> ExtractionConfig { get; set; } = new(); }
+public class ScrapeRequest { public string Url { get; set; } = string.Empty; public Dictionary<string, string> ExtractionConfig { get; set; } = []; }
 public class ChangeRoleRequest { public string Role { get; set; } = string.Empty; }
 public class UpdateStatusRequest { public string Status { get; set; } = string.Empty; }
 public class AdminEditInvoiceRequest { public decimal? ShippingCost { get; set; } public decimal? DiscountAmount { get; set; } public string Reason { get; set; } = string.Empty; }

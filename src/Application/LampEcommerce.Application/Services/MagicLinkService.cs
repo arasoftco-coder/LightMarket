@@ -2,13 +2,32 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using LampEcommerce.Application.Interfaces;
 
 namespace LampEcommerce.Application.Services;
 
-public class MagicLinkService
+public class MagicLinkService : IMagicLinkService
 {
     private readonly string _jwtSecret = "YourSuperSecretKeyForMagicLinkGeneration2024!";
     private readonly int _defaultExpiryMinutes = 30;
+
+    public async Task<string> GeneratePaymentLink(int orderId, int userId, int expiryMinutes = 30)
+    {
+        var result = await GeneratePaymentLinkAsync(orderId, userId, expiryMinutes);
+        return result.PaymentUrl;
+    }
+
+    public async Task<MagicLinkResult?> ValidatePaymentLink(string token)
+    {
+        var result = await ValidatePaymentLinkAsync(token);
+        if (!result.IsValid) return null;
+        return new MagicLinkResult
+        {
+            OrderId = result.OrderId,
+            UserId = result.UserId,
+            IsValid = true
+        };
+    }
 
     public Task<PaymentLinkResult> GeneratePaymentLinkAsync(int orderId, int userId, int expiryMinutes = 30)
     {

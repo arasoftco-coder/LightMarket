@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-admin-supplier-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="supplier-edit-page">
       <h2>{{ isEdit ? 'ویرایش تأمین‌کننده' : 'ایجاد تأمین‌کننده جدید' }}</h2>
@@ -76,8 +76,10 @@ export class AdminSupplierEditComponent implements OnInit {
   }
 
   loadSupplier(id: number): void {
-    // In real app, fetch supplier details
-    this.supplier = { name: 'تأمین‌کننده نمونه', website: 'https://example.com', contactInfo: 'تماس: 021-12345678', requiresTrackingCode: true };
+    this.adminService.getSupplierById(id).subscribe({
+      next: (data) => this.supplier = data,
+      error: (err) => console.error('Error loading supplier', err)
+    });
   }
 
   saveSupplier(): void {

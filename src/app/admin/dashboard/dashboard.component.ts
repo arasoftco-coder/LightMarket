@@ -39,12 +39,11 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadStats(): void {
-    // Dummy data for now - will be replaced with API call
-    this.stats = [
-      { icon: '📦', value: '۱۲۵', label: 'سفارشات جدید' },
-      { icon: '💰', value: '۴۵,۰۰۰,۰۰۰', label: 'درآمد کل (تومان)' },
-      { icon: '🎯', value: '۸', label: 'کمپین‌های فعال' },
-      { icon: '⏳', value: '۱۲', label: 'در انتظار پرداخت' }
-    ];
+    this.adminService.getDashboardStats().subscribe({
+      next: (data) => {
+        this.stats = data || [];
+      },
+      error: (err) => console.error('Error loading stats', err)
+    });
   }
 }
