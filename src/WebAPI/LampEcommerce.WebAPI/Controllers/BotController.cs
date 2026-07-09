@@ -11,27 +11,19 @@ namespace LampEcommerce.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/bot")]
-public class BotController : ControllerBase
+public class BotController(
+    IUserRepository userRepository,
+    IMessengerBotService messengerBotService,
+    IHttpClientFactory httpClientFactory,
+    IConfiguration configuration,
+    ILogger<BotController> logger) : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IMessengerBotService _messengerBotService;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<BotController> _logger;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IMessengerBotService _messengerBotService = messengerBotService;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<BotController> _logger = logger;
 
-    public BotController(
-        IUserRepository userRepository,
-        IMessengerBotService messengerBotService,
-        IHttpClientFactory httpClientFactory,
-        IConfiguration configuration,
-        ILogger<BotController> logger)
-    {
-        _userRepository = userRepository;
-        _messengerBotService = messengerBotService;
-        _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
-        _logger = logger;
-    }
 
     [HttpPost("telegram-webhook")]
     [AllowAnonymous]
@@ -119,12 +111,12 @@ public class BotController : ControllerBase
         }
     }
 
-    private string NormalizePhoneNumber(string phone)
+    private static string NormalizePhoneNumber(string phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return string.Empty;
         phone = phone.Trim().Replace(" ", "").Replace("-", "");
-        if (phone.StartsWith("+98")) phone = "0" + phone.Substring(3);
-        if (phone.StartsWith("98")) phone = "0" + phone.Substring(2);
+        if (phone.StartsWith("+98")) phone = "0" + phone[3..];
+        if (phone.StartsWith("98")) phone = "0" + phone[2..];
         return phone;
     }
 
@@ -147,7 +139,7 @@ public class BotController : ControllerBase
             one_time_keyboard = true
         };
 
-        string token = channel == "Telegram"
+        string? token = channel == "Telegram"
             ? _configuration["BotSettings:TelegramToken"]
             : _configuration["BotSettings:BaleToken"];
 
@@ -165,7 +157,7 @@ public class BotController : ControllerBase
         var payload = new
         {
             chat_id = chatId,
-            text = text,
+            text,
             reply_markup = keyboard
         };
 

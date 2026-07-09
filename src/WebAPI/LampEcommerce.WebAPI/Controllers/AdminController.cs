@@ -1041,6 +1041,7 @@ public class AdminController(
     {
         try
         {
+            _logger.LogInformation("Getting active shipping methods for CampaignId: {CampaignId}", campaignId);
             var methods = await _context.ShippingMethods.Where(m => m.IsActive).ToListAsync();
             var address = await _context.Addresses.FindAsync(addressId);
 
