@@ -63,13 +63,9 @@ public class ScraperService : IScraperService
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            if (results.Count == 0)
-            {
-                results.Add(new ProductScrapeResult { Name = "کالای نمونه ۱", Price = 150000, Stock = 10 });
-                results.Add(new ProductScrapeResult { Name = "کالای نمونه ۲", Price = 250000, Stock = 5 });
-            }
+            throw new Exception($"خطا در اسکرپ وب‌سایت: {ex.Message}", ex);
         }
 
         return results;

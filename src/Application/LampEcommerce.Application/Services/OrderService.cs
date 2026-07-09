@@ -40,6 +40,31 @@ public class OrderService : IOrderService
             throw new InvalidOperationException("Delivery address not found.");
         }
 
+        // Validate geographical restrictions of the campaign
+        if (order.Campaign != null)
+        {
+            var allowedProvinces = order.Campaign.AllowedProvinces;
+            var allowedCities = order.Campaign.AllowedCities;
+
+            if (!string.IsNullOrWhiteSpace(allowedProvinces))
+            {
+                var provincesList = allowedProvinces.Split(',').Select(p => p.Trim());
+                if (!provincesList.Contains(address.Province, StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"این کمپین به استان {address.Province} ارسال ندارد.");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(allowedCities))
+            {
+                var citiesList = allowedCities.Split(',').Select(c => c.Trim());
+                if (!citiesList.Contains(address.City, StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"این کمپین به شهر {address.City} ارسال ندارد.");
+                }
+            }
+        }
+
         // Hold stock and validate quantities
         foreach (var item in order.OrderItems)
         {

@@ -14,6 +14,7 @@ import { DialogModule } from 'primeng/dialog';
       <div class="page-header">
         <h2>مدیریت محصولات</h2>
         <div class="actions">
+          <button (click)="openAddModal()" class="btn-primary" style="background: #28a745;">کالای جدید</button>
           <button (click)="openImportModal()" class="btn-secondary">واردات از اکسل</button>
           <button (click)="openScrapeModal()" class="btn-primary">اسکرپ از تأمین‌کننده</button>
         </div>
@@ -24,6 +25,7 @@ import { DialogModule } from 'primeng/dialog';
             <th>نام محصول</th>
             <th>قیمت پایه (تومان)</th>
             <th>توضیحات</th>
+            <th style="width: 180px;">عملیات</th>
           </tr>
         </thead>
         <tbody>
@@ -31,9 +33,36 @@ import { DialogModule } from 'primeng/dialog';
             <td>{{ product.name }}</td>
             <td>{{ product.basePrice | number }} تومان</td>
             <td>{{ product.description || '---' }}</td>
+            <td>
+              <button (click)="openEditModal(product)" class="btn-sm btn-edit">ویرایش</button>
+              <button (click)="deleteProduct(product.id)" class="btn-sm btn-delete">حذف</button>
+            </td>
           </tr>
         </tbody>
       </table>
+
+      <!-- Manual Product Edit Dialog -->
+      <p-dialog [header]="isProductEdit ? 'ویرایش کالا' : 'افزودن کالا'" [(visible)]="showProductModal" [modal]="true" [style]="{ width: '450px' }">
+        <div class="product-form" dir="rtl">
+          <div class="form-group">
+            <label>نام کالا:</label>
+            <input type="text" [(ngModel)]="currentProduct.name" class="w-full input-control" required />
+          </div>
+          <div class="form-group">
+            <label>قیمت پایه (تومان):</label>
+            <input type="number" [(ngModel)]="currentProduct.basePrice" class="w-full input-control" required />
+          </div>
+          <div class="form-group">
+            <label>توضیحات:</label>
+            <textarea [(ngModel)]="currentProduct.description" class="w-full input-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>آدرس تصویر (URL):</label>
+            <input type="text" [(ngModel)]="currentProduct.imageUrl" class="w-full input-control" />
+          </div>
+          <button (click)="saveProduct()" class="btn-success w-full" style="margin-top: 15px;">ذخیره کالا</button>
+        </div>
+      </p-dialog>
 
       <!-- Scrape Dialog -->
       <p-dialog header="اسکرپ محصولات از سایت تأمین‌کننده" [(visible)]="showScrapeDialog" [modal]="true" [style]="{ width: '800px' }">
@@ -110,7 +139,10 @@ import { DialogModule } from 'primeng/dialog';
     .data-table th, .data-table td { padding: 15px; text-align: right; border-bottom: 1px solid #e9ecef; }
     .data-table th { background: #f8f9fa; font-weight: 600; color: #495057; }
     .data-table tr:hover { background: #f8f9fa; }
-    .scrape-form { padding: 15px; }
+    .btn-sm { padding: 6px 12px; margin-left: 5px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-edit { background: #ffc107; color: #212529; }
+    .btn-delete { background: #dc3545; color: white; }
+    .scrape-form, .product-form { padding: 15px; }
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #495057; }
     .w-full { width: 100%; }
@@ -129,6 +161,10 @@ export class AdminProductsComponent implements OnInit {
   isScraping = false;
   scrapedProducts: any[] = [];
   
+  showProductModal = false;
+  isProductEdit = false;
+  currentProduct: any = { id: null, name: '', basePrice: 0, description: '', imageUrl: '' };
+
   scrapeConfig = {
     supplierId: null,
     url: '',
@@ -174,6 +210,57 @@ export class AdminProductsComponent implements OnInit {
   openScrapeModal(): void {
     this.scrapedProducts = [];
     this.showScrapeDialog = true;
+  }
+
+  openAddModal(): void {
+    this.isProductEdit = false;
+    this.currentProduct = { id: null, name: '', basePrice: 0, description: '', imageUrl: '' };
+    this.showProductModal = true;
+  }
+
+  openEditModal(product: any): void {
+    this.isProductEdit = true;
+    this.currentProduct = { ...product };
+    this.showProductModal = true;
+  }
+
+  saveProduct(): void {
+    if (!this.currentProduct.name || this.currentProduct.basePrice <= 0) {
+      alert('لطفاً نام و قیمت صحیح برای کالا وارد کنید.');
+      return;
+    }
+
+    if (this.isProductEdit) {
+      this.adminService.updateProduct(this.currentProduct.id, this.currentProduct).subscribe({
+        next: () => {
+          alert('کالا با موفقیت ویرایش شد.');
+          this.showProductModal = false;
+          this.loadProducts();
+        },
+        error: (err: any) => alert('خطا در ویرایش کالا: ' + err.message)
+      });
+    } else {
+      this.adminService.createProduct(this.currentProduct).subscribe({
+        next: () => {
+          alert('کالا با موفقیت ایجاد شد.');
+          this.showProductModal = false;
+          this.loadProducts();
+        },
+        error: (err: any) => alert('خطا در ایجاد کالا: ' + err.message)
+      });
+    }
+  }
+
+  deleteProduct(id: number): void {
+    if (confirm('آیا از حذف این کالا اطمینان دارید؟')) {
+      this.adminService.deleteProduct(id).subscribe({
+        next: () => {
+          alert('کالا با موفقیت حذف شد.');
+          this.loadProducts();
+        },
+        error: (err: any) => alert('خطا در حذف کالا: ' + err.message)
+      });
+    }
   }
 
   runScraper(): void {

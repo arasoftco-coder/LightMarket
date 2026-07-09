@@ -157,6 +157,61 @@ using (var scope = app.Services.CreateScope())
             dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
         }
+
+        // Seed default payment methods if table is empty
+        if (!dbContext.PaymentMethods.Any())
+        {
+            dbContext.PaymentMethods.AddRange(
+                new PaymentMethod
+                {
+                    Name = "درگاه پرداخت زرین‌پال",
+                    Type = "Gateway",
+                    GatewayName = "ZarinPal",
+                    GatewayConfig = "{\"merchantId\":\"YOUR_MERCHANT_ID\",\"gatewayUrl\":\"https://payment.zarinpal.com/pg/v4/StartPay/\",\"callbackUrl\":\"https://lightmarket.ir/payment/callback\"}",
+                    IsActive = true,
+                    Description = "اتصال به درگاه بانکی زرین‌پال برای پرداخت آنلاین امن با کلیه کارت‌های شتاب"
+                },
+                new PaymentMethod
+                {
+                    Name = "کارت به کارت بانک ملی",
+                    Type = "CardToCard",
+                    GatewayName = "CardToCard",
+                    GatewayConfig = "{\"cardNumber\":\"6037991122334455\",\"holderName\":\"مدیر سیستم\",\"bankName\":\"بانک ملی ایران\"}",
+                    IsActive = true,
+                    Description = "کارت به کارت و ثبت شماره فیش واریزی در سیستم جهت تایید دستی"
+                }
+            );
+            dbContext.SaveChanges();
+        }
+
+        // Seed default shipping methods if table is empty
+        if (!dbContext.ShippingMethods.Any())
+        {
+            dbContext.ShippingMethods.AddRange(
+                new ShippingMethod
+                {
+                    Name = "پست پیشتاز",
+                    LogoUrl = "",
+                    BaseCost = 50000,
+                    IsActive = true
+                },
+                new ShippingMethod
+                {
+                    Name = "پیک موتوری (ویژه تهران)",
+                    LogoUrl = "",
+                    BaseCost = 80000,
+                    IsActive = true
+                },
+                new ShippingMethod
+                {
+                    Name = "تیپاکس (پس‌کرایه/کرایه پایه)",
+                    LogoUrl = "",
+                    BaseCost = 65000,
+                    IsActive = true
+                }
+            );
+            dbContext.SaveChanges();
+        }
     }
     catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 2714)
     {

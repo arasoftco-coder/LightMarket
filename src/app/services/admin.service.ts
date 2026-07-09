@@ -164,6 +164,18 @@ export class AdminService {
     );
   }
 
+  createProduct(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/products`, data);
+  }
+
+  updateProduct(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/products/${id}`, data);
+  }
+
+  deleteProduct(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/products/${id}`);
+  }
+
   importExcel(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -176,5 +188,40 @@ export class AdminService {
 
   scrapeProducts(supplierId: number, data: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/products/scrape/${supplierId}`, data);
+  }
+
+  // Payment Methods
+  getPaymentMethods(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/payment-methods`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  createPaymentMethod(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/payment-methods`, data);
+  }
+
+  updatePaymentMethod(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/payment-methods/${id}`, data);
+  }
+
+  deletePaymentMethod(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/payment-methods/${id}`);
+  }
+
+  getPublicActivePaymentMethods(): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/payment-methods/public`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  getReportsDashboard(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/reports/dashboard`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  exportReport(type: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/reports/export?type=${type}`, { responseType: 'blob' });
   }
 }

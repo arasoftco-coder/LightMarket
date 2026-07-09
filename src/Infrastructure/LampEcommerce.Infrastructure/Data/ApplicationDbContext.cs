@@ -23,10 +23,21 @@ public class ApplicationDbContext : DbContext
     public DbSet<ShippingMethod> ShippingMethods { get; set; } = null!;
     public DbSet<Ticket> Tickets { get; set; } = null!;
     public DbSet<TicketMessage> TicketMessages { get; set; } = null!;
+    public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // PaymentMethod configuration
+        modelBuilder.Entity<PaymentMethod>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.GatewayName).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.GatewayConfig).IsRequired();
+        });
 
         // User configuration
         modelBuilder.Entity<User>(entity =>

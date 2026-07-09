@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OrderService } from '../services/order.service';
+import { AdminService } from '../services/admin.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,17 +21,19 @@ export class PaymentComponent implements OnInit {
   order: any = null;
   loading: boolean = true;
   submitting: boolean = false;
-  paymentMethod: string = 'online'; // 'online' or 'cardToCard'
   
-  // Card to Card fields
-  cardNumber: string = '6037-9911-2233-4455';
-  cardHolderName: string = 'فروشگاه لایت مارکت (تأمین‌کننده)';
+  availableMethods: any[] = [];
+  selectedMethod: any = null;
+  selectedMethodId: number | null = null;
+  selectedMethodConfig: any = {};
+  paymentMethod: string = 'Gateway'; // 'Gateway' or 'CardToCard'
   trackingCode: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private adminService: AdminService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +41,7 @@ export class PaymentComponent implements OnInit {
     if (idParam) {
       this.orderId = +idParam;
       this.loadOrderDetails();
+      this.loadPaymentMethods();
     } else {
       this.router.navigate(['/']);
     }
@@ -58,19 +62,46 @@ export class PaymentComponent implements OnInit {
     });
   }
 
+  loadPaymentMethods(): void {
+    this.adminService.getPublicActivePaymentMethods().subscribe({
+      next: (methods) => {
+        this.availableMethods = methods || [];
+        if (this.availableMethods.length > 0) {
+          this.selectMethod(this.availableMethods[0]);
+        }
+      },
+      error: (err) => console.error('Error loading payment methods', err)
+    });
+  }
+
+  selectMethod(method: any): void {
+    this.selectedMethod = method;
+    this.selectedMethodId = method.id;
+    this.paymentMethod = method.type;
+    try {
+      this.selectedMethodConfig = JSON.parse(method.gatewayConfig || '{}');
+    } catch {
+      this.selectedMethodConfig = {};
+    }
+  }
+
   processPayment(): void {
-    if (this.paymentMethod === 'online') {
+    if (!this.selectedMethod) {
+      alert('لطفاً یک روش پرداخت انتخاب کنید.');
+      return;
+    }
+
+    if (this.paymentMethod === 'Gateway') {
       this.submitting = true;
       this.orderService.createPaymentRequest(this.orderId, this.order.totalAmount).subscribe({
         next: (res) => {
           this.submitting = false;
           if (res.success && res.paymentUrl) {
-            // Parse Mock Payment URL params: authority and amount
+            // Parse Mock Payment URL params
             const url = new URL(res.paymentUrl);
             const authority = url.searchParams.get('authority') || '';
             const amount = url.searchParams.get('amount') || '';
             
-            // Redirect internally to the mock bank page
             this.router.navigate(['/payment/gateway'], { queryParams: { authority, amount } });
           } else {
             alert('خطا در ایجاد درخواست پرداخت.');

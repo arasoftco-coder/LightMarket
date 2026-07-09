@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { OrderService } from '../services/order.service';
 import { CartService } from '../services/cart.service';
+import { CampaignService } from '../services/campaign.service';
 import { ButtonModule } from 'primeng/button';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DropdownModule } from 'primeng/dropdown';
@@ -38,17 +39,15 @@ export class CheckoutComponent implements OnInit {
   step: number = 1;
   addresses: Address[] = [];
   selectedAddressId: number | null = null;
-  shippingMethods: ShippingMethod[] = [
-    { id: 1, name: 'پست پیشتاز', cost: 50000, estimatedDays: '۲-۳ روز کاری' },
-    { id: 2, name: 'پیک موتوری', cost: 80000, estimatedDays: '۱ روز کاری' },
-    { id: 3, name: 'ارسال رایگان', cost: 0, estimatedDays: '۳-۵ روز کاری' }
-  ];
+  shippingMethods: any[] = [];
   selectedShippingMethodId: number | null = null;
   
   cartItems: any[] = [];
   subtotal: number = 0;
   shippingCost: number = 0;
   totalAmount: number = 0;
+  campaignId: number | null = null;
+  activeCampaign: any = null;
   
   loading: boolean = false;
   showNewAddressForm: boolean = false;
@@ -77,12 +76,46 @@ export class CheckoutComponent implements OnInit {
     private userService: UserService,
     private cartService: CartService,
     private orderService: OrderService,
+    private campaignService: CampaignService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadAddresses();
     this.loadCartSummary();
+    this.loadActiveCampaign();
+  }
+
+  loadActiveCampaign(): void {
+    this.campaignService.getActiveCampaign().subscribe({
+      next: (campaign) => {
+        this.activeCampaign = campaign;
+      },
+      error: (err) => console.error('Error loading active campaign:', err)
+    });
+  }
+
+  isAddressAllowed(address: Address): boolean {
+    if (!this.activeCampaign) return true;
+    
+    const allowedProvinces = this.activeCampaign.allowedProvinces;
+    const allowedCities = this.activeCampaign.allowedCities;
+
+    if (allowedProvinces) {
+      const provinces = allowedProvinces.split(',').map((p: string) => p.trim());
+      if (!provinces.includes(address.province)) {
+        return false;
+      }
+    }
+
+    if (allowedCities) {
+      const cities = allowedCities.split(',').map((c: string) => c.trim());
+      if (!cities.includes(address.city)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   loadAddresses(): void {
@@ -90,11 +123,19 @@ export class CheckoutComponent implements OnInit {
       next: (data: any) => {
         this.addresses = data;
         if (data.length > 0) {
-          this.selectedAddressId = data[0].id;
+          // Select first allowed address
+          const allowed = data.find((a: Address) => this.isAddressAllowed(a));
+          this.selectedAddressId = allowed ? allowed.id : data[0].id;
+          this.loadShippingMethods();
         }
       },
       error: (err: any) => console.error('Error loading addresses:', err)
     });
+  }
+
+  selectAddress(addressId: number): void {
+    this.selectedAddressId = addressId;
+    this.loadShippingMethods();
   }
 
   loadCartSummary(): void {
@@ -102,9 +143,31 @@ export class CheckoutComponent implements OnInit {
       next: (data: any) => {
         this.cartItems = data.items || [];
         this.subtotal = data.totalAmount || 0;
+        this.campaignId = data.campaignId;
         this.calculateTotal();
+        this.loadShippingMethods();
       },
       error: (err: any) => console.error('Error loading cart:', err)
+    });
+  }
+
+  loadShippingMethods(): void {
+    if (!this.selectedAddressId || !this.campaignId) return;
+
+    this.orderService.getPublicShippingMethods(this.selectedAddressId, this.campaignId).subscribe({
+      next: (methods: any) => {
+        this.shippingMethods = methods || [];
+        const allowedMethods = this.shippingMethods.filter(m => m.isAllowed);
+        if (allowedMethods.length > 0) {
+          this.selectedShippingMethodId = allowedMethods[0].id;
+          this.shippingCost = allowedMethods[0].cost;
+        } else {
+          this.selectedShippingMethodId = null;
+          this.shippingCost = 0;
+        }
+        this.calculateTotal();
+      },
+      error: (err: any) => console.error('Error loading shipping methods:', err)
     });
   }
 
@@ -116,6 +179,13 @@ export class CheckoutComponent implements OnInit {
     const method = this.shippingMethods.find(m => m.id === this.selectedShippingMethodId);
     this.shippingCost = method ? method.cost : 0;
     this.calculateTotal();
+  }
+
+  selectShippingMethod(method: any): void {
+    if (method.isAllowed) {
+      this.selectedShippingMethodId = method.id;
+      this.onShippingMethodChange();
+    }
   }
 
   addNewAddress(): void {
@@ -135,6 +205,7 @@ export class CheckoutComponent implements OnInit {
         this.selectedAddressId = newAddr.id;
         this.showNewAddressForm = false;
         this.newAddress = {};
+        this.loadShippingMethods();
       },
       error: (err: any) => console.error('Error adding address:', err)
     });
@@ -145,14 +216,24 @@ export class CheckoutComponent implements OnInit {
       alert('لطفاً یک آدرس انتخاب کنید.');
       return;
     }
+    
+    const selectedAddress = this.addresses.find(a => a.id === this.selectedAddressId);
+    if (selectedAddress && !this.isAddressAllowed(selectedAddress)) {
+      alert('آدرس انتخاب شده در محدوده پوشش‌دهی جغرافیایی این کمپین نیست.');
+      return;
+    }
+
     if (!this.selectedShippingMethodId) {
       alert('لطفاً روش ارسال را انتخاب کنید.');
       return;
     }
 
+    const selectedMethod = this.shippingMethods.find(m => m.id === this.selectedShippingMethodId);
+    
     const orderData = {
+      cartId: this.campaignId, // cartId in request is actually map to OrderId or CartId on backend
       addressId: this.selectedAddressId,
-      shippingMethodId: this.selectedShippingMethodId,
+      shippingMethod: selectedMethod ? selectedMethod.name : 'نامشخص',
       paymentMethod: 'Online'
     };
 
@@ -160,13 +241,12 @@ export class CheckoutComponent implements OnInit {
     this.orderService.createOrder(orderData).subscribe({
       next: (order: any) => {
         this.loading = false;
-        // Redirect to payment or success page
         this.router.navigate(['/payment', order.id]);
       },
       error: (err: any) => {
         this.loading = false;
         console.error('Error creating order:', err);
-        alert('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
+        alert(err.error?.message || 'خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
       }
     });
   }

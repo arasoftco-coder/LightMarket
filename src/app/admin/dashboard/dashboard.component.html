@@ -1,11 +1,133 @@
-<div class="dashboard">
-  <h2>داشبورد مدیریت</h2>
-  <div class="stats-grid">
-    <div class="stat-card" *ngFor="let stat of stats">
-      <div class="stat-icon">{{ stat.icon }}</div>
-      <div class="stat-info">
-        <h3>{{ stat.value }}</h3>
-        <p>{{ stat.label }}</p>
+<div class="dashboard-container" dir="rtl">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-title">
+      <h2>داشبورد مدیریتی و گزارشات مالی</h2>
+      <p>نمای کلی از وضعیت فروش، کمپین‌ها و آمارهای کلیدی سیستم</p>
+    </div>
+    
+    <!-- Export Actions -->
+    <div class="export-actions">
+      <button class="export-btn btn-orders" (click)="downloadReport('orders')">
+        <i class="pi pi-download"></i> دانلود اکسل سفارشات
+      </button>
+      <button class="export-btn btn-products" (click)="downloadReport('products')">
+        <i class="pi pi-download"></i> دانلود اکسل محصولات
+      </button>
+      <button class="export-btn btn-campaigns" (click)="downloadReport('campaigns')">
+        <i class="pi pi-download"></i> دانلود اکسل کمپین‌ها
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid" *ngIf="reportData">
+    <div class="stat-card card-revenue">
+      <div class="card-icon"><span class="emoji">💵</span></div>
+      <div class="card-content">
+        <p class="stat-label">کل درآمد ناخالص</p>
+        <h3 class="stat-val">{{ reportData.totalRevenue | number:'1.0-0' }} <span class="currency">تومان</span></h3>
+      </div>
+    </div>
+    
+    <div class="stat-card card-orders">
+      <div class="card-icon"><span class="emoji">📦</span></div>
+      <div class="card-content">
+        <p class="stat-label">تعداد کل سفارش‌ها</p>
+        <h3 class="stat-val">{{ reportData.totalOrdersCount | number }} <span class="currency">تراکنش</span></h3>
+      </div>
+    </div>
+    
+    <div class="stat-card card-avg">
+      <div class="card-icon"><span class="emoji">🛒</span></div>
+      <div class="card-content">
+        <p class="stat-label">میانگین ارزش سبد خرید</p>
+        <h3 class="stat-val">{{ reportData.avgOrderValue | number:'1.0-0' }} <span class="currency">تومان</span></h3>
+      </div>
+    </div>
+
+    <div class="stat-card card-users">
+      <div class="card-icon"><span class="emoji">👥</span></div>
+      <div class="card-content">
+        <p class="stat-label">کاربران ثبت‌نام شده</p>
+        <h3 class="stat-val">{{ reportData.totalUsers | number }} <span class="currency">نفر</span></h3>
+      </div>
+    </div>
+
+    <div class="stat-card card-campaigns">
+      <div class="card-icon"><span class="emoji">⚡</span></div>
+      <div class="card-content">
+        <p class="stat-label">کمپین‌های فعال</p>
+        <h3 class="stat-val">{{ reportData.activeCampaignsCount | number }} <span class="currency">کمپین</span></h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tables Section -->
+  <div class="tables-grid" *ngIf="reportData">
+    <!-- Top Products -->
+    <div class="table-card">
+      <div class="card-header">
+        <h4>۵ محصول پرفروش</h4>
+        <span class="badge">بر اساس تعداد فروش</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>شناسه</th>
+              <th>نام محصول</th>
+              <th>تعداد فروش</th>
+              <th>درآمد حاصله</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let prod of reportData.topProducts">
+              <td>#{{ prod.productId }}</td>
+              <td class="bold">{{ prod.productName }}</td>
+              <td>{{ prod.qtySold | number }} عدد</td>
+              <td class="price">{{ prod.revenue | number:'1.0-0' }} تومان</td>
+            </tr>
+            <tr *ngIf="!reportData.topProducts || reportData.topProducts.length === 0">
+              <td colspan="4" class="text-center">هیچ فروش محصولی ثبت نشده است.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Campaigns Performance -->
+    <div class="table-card">
+      <div class="card-header">
+        <h4>مقایسه عملکرد کمپین‌ها</h4>
+        <span class="badge">بر اساس درآمد کل</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>نام کمپین</th>
+              <th>وضعیت</th>
+              <th>تعداد سفارشات</th>
+              <th>درآمد کل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let camp of reportData.campaignStats">
+              <td class="bold">{{ camp.name }}</td>
+              <td>
+                <span class="status-badge" [class.status-active]="camp.isActive" [class.status-inactive]="!camp.isActive">
+                  {{ camp.isActive ? 'فعال' : 'غیرفعال' }}
+                </span>
+              </td>
+              <td>{{ camp.totalOrders | number }} سفارش</td>
+              <td class="price">{{ camp.revenue | number:'1.0-0' }} تومان</td>
+            </tr>
+            <tr *ngIf="!reportData.campaignStats || reportData.campaignStats.length === 0">
+              <td colspan="4" class="text-center">هیچ کمپینی ثبت نشده است.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

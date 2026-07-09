@@ -10,12 +10,18 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentGatewayService _paymentGatewayService;
     private readonly IMagicLinkService _magicLinkService;
+    private readonly IOrderService _orderService;
     private readonly ILogger<PaymentController> _logger;
 
-    public PaymentController(IPaymentGatewayService paymentGatewayService, IMagicLinkService magicLinkService, ILogger<PaymentController> logger)
+    public PaymentController(
+        IPaymentGatewayService paymentGatewayService, 
+        IMagicLinkService magicLinkService, 
+        IOrderService orderService,
+        ILogger<PaymentController> logger)
     {
         _paymentGatewayService = paymentGatewayService;
         _magicLinkService = magicLinkService;
+        _orderService = orderService;
         _logger = logger;
     }
 
@@ -42,6 +48,20 @@ public class PaymentController : ControllerBase
         try
         {
             var result = await _paymentGatewayService.VerifyPayment(request.Authority, request.Status);
+            if (result.Success)
+            {
+                // Extract orderId from authority (AUTH_{orderId}_{guid})
+                var parts = request.Authority.Split('_');
+                if (parts.Length >= 2 && int.TryParse(parts[1], out var orderId))
+                {
+                    // Extract tracking code from result message or generate a default one
+                    var trackingCode = result.Message.Contains("Tracking Code: ")
+                        ? result.Message.Substring(result.Message.IndexOf("Tracking Code: ") + 15)
+                        : $"TRK_{Guid.NewGuid():N}";
+
+                    await _orderService.ConfirmPayment(orderId, trackingCode);
+                }
+            }
             return Ok(new { success = result.Success, message = result.Message });
         }
         catch (Exception ex)

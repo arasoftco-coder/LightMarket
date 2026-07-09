@@ -24,12 +24,6 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
           <label>اطلاعات تماس:</label>
           <textarea [(ngModel)]="supplier.contactInfo" name="contactInfo" rows="3"></textarea>
         </div>
-        <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" [(ngModel)]="supplier.requiresTrackingCode" name="requiresTrackingCode" />
-            نیاز به کد رهگیری پرداخت
-          </label>
-        </div>
         <div class="form-actions">
           <button type="submit" class="btn-primary">{{ isEdit ? 'ذخیره تغییرات' : 'ایجاد تأمین‌کننده' }}</button>
           <button type="button" routerLink="/admin/suppliers" class="btn-secondary">انصراف</button>

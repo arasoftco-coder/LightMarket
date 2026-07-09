@@ -24,17 +24,19 @@
     <div class="addresses-list">
       <div *ngFor="let addr of addresses" class="address-card" 
            [class.selected]="selectedAddressId === addr.id"
-           (click)="selectedAddressId = addr.id">
-        <p-radioButton [value]="addr.id" [(ngModel)]="selectedAddressId"></p-radioButton>
+           [class.disabled-address]="!isAddressAllowed(addr)"
+           (click)="isAddressAllowed(addr) ? selectAddress(addr.id) : null">
+        <p-radioButton [value]="addr.id" [(ngModel)]="selectedAddressId" [disabled]="!isAddressAllowed(addr)" (onClick)="selectAddress(addr.id)"></p-radioButton>
         <div class="address-details">
           <p>{{ addr.fullAddress }}</p>
           <p *ngIf="addr.postalCode">کد پستی: {{ addr.postalCode }}</p>
+          <p *ngIf="!isAddressAllowed(addr)" class="error-text" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">این آدرس در محدوده جغرافیایی کمپین جاری نیست.</p>
         </div>
       </div>
     </div>
 
     <button pButton type="button" label="افزودن آدرس جدید" icon="pi pi-plus" 
-            class="p-button-outlined" (click)="showNewAddressForm = !showNewAddressForm"></button>
+             class="p-button-outlined" (click)="showNewAddressForm = !showNewAddressForm"></button>
 
     <div *ngIf="showNewAddressForm" class="new-address-form">
       <div style="margin-bottom: 0.75rem;">
@@ -61,12 +63,14 @@
     <div class="shipping-methods">
       <div *ngFor="let method of shippingMethods" class="shipping-card"
            [class.selected]="selectedShippingMethodId === method.id"
-           (click)="selectedShippingMethodId = method.id; onShippingMethodChange()">
-        <p-radioButton [value]="method.id" [(ngModel)]="selectedShippingMethodId"></p-radioButton>
+           [class.disabled-shipping]="!method.isAllowed"
+           (click)="selectShippingMethod(method)">
+        <p-radioButton [value]="method.id" [(ngModel)]="selectedShippingMethodId" [disabled]="!method.isAllowed" (onClick)="onShippingMethodChange()"></p-radioButton>
         <div class="shipping-details">
           <h4>{{ method.name }}</h4>
           <p>زمان تقریبی: {{ method.estimatedDays }}</p>
-          <p class="cost">{{ method.cost | number:'1.0-0' }} تومان</p>
+          <p class="cost" *ngIf="method.isAllowed">{{ method.cost | number:'1.0-0' }} تومان</p>
+          <p class="error-text" *ngIf="!method.isAllowed" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ method.reason }}</p>
         </div>
       </div>
     </div>

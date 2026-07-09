@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using LampEcommerce.Application.Interfaces;
 using LampEcommerce.Application.Services;
@@ -11,6 +12,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using LampEcommerce.Infrastructure.Data;
 
 namespace LampEcommerce.WebAPI.Controllers;
 
@@ -31,6 +34,7 @@ public class AdminController(
     ISupplierRepository supplierRepository,
     IShippingMethodRepository shippingMethodRepository,
     IConfiguration config,
+    ApplicationDbContext context,
     ILogger<AdminController> logger) : ControllerBase
 {
     private readonly ICampaignService _campaignService = campaignService;
@@ -46,6 +50,7 @@ public class AdminController(
     private readonly ISupplierRepository _supplierRepository = supplierRepository;
     private readonly IShippingMethodRepository _shippingMethodRepository = shippingMethodRepository;
     private readonly IConfiguration _config = config;
+    private readonly ApplicationDbContext _context = context;
     private readonly ILogger<AdminController> _logger = logger;
 
     [HttpGet("dashboard/stats")]
@@ -216,7 +221,7 @@ public class AdminController(
             var supplier = new Supplier
             {
                 Name = request.Name,
-                Website = request.WebsiteUrl,
+                Website = request.Website,
                 ContactInfo = request.ContactInfo,
                 RequiresTrackingCode = request.RequiresTrackingCode
             };
@@ -239,7 +244,7 @@ public class AdminController(
             if (supplier == null) return NotFound(new { success = false, message = "Supplier not found" });
 
             supplier.Name = request.Name;
-            supplier.Website = request.WebsiteUrl;
+            supplier.Website = request.Website;
             supplier.ContactInfo = request.ContactInfo;
             supplier.RequiresTrackingCode = request.RequiresTrackingCode;
 
@@ -264,6 +269,69 @@ public class AdminController(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting products");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost("products")]
+    public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest request)
+    {
+        try
+        {
+            var product = new Product
+            {
+                Name = request.Name,
+                BasePrice = request.BasePrice,
+                Description = request.Description ?? "",
+                ImageUrl = request.ImageUrl ?? ""
+            };
+            var created = await _productRepository.AddAsync(product);
+            return Ok(new { success = true, data = created, message = "کالا با موفقیت ایجاد شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating product");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPut("products/{id}")]
+    public async Task<IActionResult> UpdateProduct(int id, [FromBody] CreateProductRequest request)
+    {
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product == null) return NotFound(new { success = false, message = "Product not found" });
+
+            product.Name = request.Name;
+            product.BasePrice = request.BasePrice;
+            product.Description = request.Description ?? "";
+            product.ImageUrl = request.ImageUrl ?? "";
+
+            await _productRepository.UpdateAsync(product);
+            return Ok(new { success = true, data = product, message = "کالا با موفقیت ویرایش شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating product");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpDelete("products/{id}")]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product == null) return NotFound(new { success = false, message = "Product not found" });
+
+            await _productRepository.DeleteAsync(product);
+            return Ok(new { success = true, message = "کالا با موفقیت حذف شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting product");
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
@@ -705,9 +773,9 @@ public class AdminController(
         return new SiteSettingsModel
         {
             SmsApiKey = smsSection.GetValue<string>("ApiKey") ?? "YOUR_SMS_API_KEY",
-            SmsSenderId = smsSection.GetValue<string>("SenderId") ?? "LightMarket",
+            SenderId = smsSection.GetValue<string>("SenderId") ?? "LightMarket",
             PaymentMerchantId = paymentSection.GetValue<string>("MerchantId") ?? "YOUR_MERCHANT_ID",
-            PaymentCallbackUrl = paymentSection.GetValue<string>("CallbackUrl") ?? "https://lightmarket.ir/payment/callback",
+            CallbackUrl = paymentSection.GetValue<string>("CallbackUrl") ?? "https://lightmarket.ir/payment/callback",
             MagicLinkExpiry = 30,
             FooterLinks =
             [
@@ -726,6 +794,7 @@ public class AdminController(
     }
 
     [HttpGet("settings")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetSettings()
     {
         try
@@ -757,6 +826,7 @@ public class AdminController(
 
     [HttpGet("settings/public")]
     [AllowAnonymous]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetPublicSettings()
     {
         try
@@ -775,6 +845,390 @@ public class AdminController(
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
+
+    [HttpGet("payment-methods")]
+    public async Task<IActionResult> GetAllPaymentMethods()
+    {
+        try
+        {
+            var methods = await _context.PaymentMethods.ToListAsync();
+            return Ok(new { success = true, data = methods });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment methods");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost("payment-methods")]
+    public async Task<IActionResult> CreatePaymentMethod([FromBody] CreatePaymentMethodRequest request)
+    {
+        try
+        {
+            var method = new PaymentMethod
+            {
+                Name = request.Name,
+                Type = request.Type,
+                GatewayName = request.GatewayName,
+                GatewayConfig = request.GatewayConfig,
+                IsActive = request.IsActive,
+                Description = request.Description
+            };
+            _context.PaymentMethods.Add(method);
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, data = method, message = "روش پرداخت با موفقیت ثبت شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating payment method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPut("payment-methods/{id}")]
+    public async Task<IActionResult> UpdatePaymentMethod(int id, [FromBody] CreatePaymentMethodRequest request)
+    {
+        try
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null) return NotFound(new { success = false, message = "Payment method not found" });
+
+            method.Name = request.Name;
+            method.Type = request.Type;
+            method.GatewayName = request.GatewayName;
+            method.GatewayConfig = request.GatewayConfig;
+            method.IsActive = request.IsActive;
+            method.Description = request.Description;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, data = method, message = "روش پرداخت با موفقیت بروزرسانی شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating payment method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpDelete("payment-methods/{id}")]
+    public async Task<IActionResult> DeletePaymentMethod(int id)
+    {
+        try
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null) return NotFound(new { success = false, message = "Payment method not found" });
+
+            _context.PaymentMethods.Remove(method);
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "روش پرداخت با موفقیت حذف شد." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting payment method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("payment-methods/public")]
+    [AllowAnonymous]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetPublicActivePaymentMethods()
+    {
+        try
+        {
+            var methods = await _context.PaymentMethods
+                .Where(p => p.IsActive)
+                .ToListAsync();
+            return Ok(new { success = true, data = methods });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting public active payment methods");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    // --- Shipping Methods CRUD ---
+    [HttpGet("shipping-methods")]
+    public async Task<IActionResult> GetShippingMethods()
+    {
+        try
+        {
+            var methods = await _context.ShippingMethods.ToListAsync();
+            return Ok(new { success = true, data = methods });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting shipping methods");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost("shipping-methods")]
+    public async Task<IActionResult> CreateShippingMethod([FromBody] CreateShippingMethodRequest request)
+    {
+        try
+        {
+            var method = new ShippingMethod
+            {
+                Name = request.Name,
+                LogoUrl = request.LogoUrl ?? string.Empty,
+                ApiKey = request.ApiKey,
+                ApiUrl = request.ApiUrl,
+                BaseCost = request.BaseCost,
+                IsActive = request.IsActive
+            };
+            _context.ShippingMethods.Add(method);
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, data = method });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating shipping method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPut("shipping-methods/{id}")]
+    public async Task<IActionResult> UpdateShippingMethod(int id, [FromBody] CreateShippingMethodRequest request)
+    {
+        try
+        {
+            var method = await _context.ShippingMethods.FindAsync(id);
+            if (method == null) return NotFound(new { success = false, message = "Shipping method not found" });
+
+            method.Name = request.Name;
+            method.LogoUrl = request.LogoUrl ?? string.Empty;
+            method.ApiKey = request.ApiKey;
+            method.ApiUrl = request.ApiUrl;
+            method.BaseCost = request.BaseCost;
+            method.IsActive = request.IsActive;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, data = method });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating shipping method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpDelete("shipping-methods/{id}")]
+    public async Task<IActionResult> DeleteShippingMethod(int id)
+    {
+        try
+        {
+            var method = await _context.ShippingMethods.FindAsync(id);
+            if (method == null) return NotFound(new { success = false, message = "Shipping method not found" });
+
+            _context.ShippingMethods.Remove(method);
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Shipping method deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting shipping method");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("shipping-methods/public")]
+    [AllowAnonymous]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetPublicActiveShippingMethods([FromQuery] int addressId, [FromQuery] int campaignId)
+    {
+        try
+        {
+            var methods = await _context.ShippingMethods.Where(m => m.IsActive).ToListAsync();
+            var address = await _context.Addresses.FindAsync(addressId);
+
+            var result = new List<object>();
+            foreach (var m in methods)
+            {
+                decimal cost = m.BaseCost;
+                bool isAllowed = true;
+                string reason = string.Empty;
+
+                if (address != null)
+                {
+                    // Surcharge for provincial shipping (outside Tehran)
+                    if (address.Province != "تهران")
+                    {
+                        if (m.Name.Contains("پیک") || m.Name.Contains("موتور"))
+                        {
+                            isAllowed = false;
+                            reason = "ارسال با پیک موتوری فقط داخل تهران مجاز است.";
+                        }
+                        else
+                        {
+                            cost += 25000; // Provincial surcharge
+                        }
+                    }
+                }
+
+                result.Add(new
+                {
+                    m.Id,
+                    m.Name,
+                    m.LogoUrl,
+                    Cost = cost,
+                    IsAllowed = isAllowed,
+                    Reason = reason,
+                    EstimatedDays = m.Name.Contains("پست") ? "۲-۴ روز کاری" : (m.Name.Contains("پیک") ? "۱ روز کاری" : "۳-۵ روز کاری")
+                });
+            }
+
+            return Ok(new { success = true, data = result });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting public active shipping methods");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    // --- Admin Reports ---
+    [HttpGet("reports/dashboard")]
+    public async Task<IActionResult> GetDashboardReport()
+    {
+        try
+        {
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Where(o => o.Status != "Open" && o.Status != "Cancelled")
+                .ToListAsync();
+
+            var totalRevenue = orders.Sum(o => o.TotalAmount);
+            var totalOrdersCount = orders.Count;
+            var avgOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
+            var totalUsers = await _context.Users.CountAsync();
+            var activeCampaignsCount = await _context.Campaigns.CountAsync(c => c.IsActive && c.EndDate >= DateTime.UtcNow);
+
+            // Top Selling Products
+            var topProducts = orders.SelectMany(o => o.OrderItems)
+                .GroupBy(oi => oi.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    ProductName = g.First().Product?.Name ?? $"کد محصول: {g.Key}",
+                    QtySold = g.Sum(oi => oi.Quantity),
+                    Revenue = g.Sum(oi => oi.TotalPrice)
+                })
+                .OrderByDescending(p => p.QtySold)
+                .Take(5)
+                .ToList();
+
+            // Campaign Comparison Stats
+            var campaigns = await _context.Campaigns.ToListAsync();
+            var campaignStats = campaigns.Select(c =>
+            {
+                var cOrders = orders.Where(o => o.CampaignId == c.Id).ToList();
+                return new
+                {
+                    c.Id,
+                    c.Name,
+                    c.IsActive,
+                    TotalOrders = cOrders.Count,
+                    Revenue = cOrders.Sum(o => o.TotalAmount)
+                };
+            }).OrderByDescending(c => c.Revenue).ToList();
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    totalRevenue,
+                    totalOrdersCount,
+                    avgOrderValue,
+                    totalUsers,
+                    activeCampaignsCount,
+                    topProducts,
+                    campaignStats
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating dashboard report");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet("reports/export")]
+    public async Task<IActionResult> ExportReport([FromQuery] string type)
+    {
+        try
+        {
+            var csv = new StringBuilder();
+            csv.Append('\uFEFF'); // UTF-8 BOM prefix for Excel Persian formatting
+
+            if (type == "orders")
+            {
+                csv.AppendLine("شناسه سفارش,کاربر,کمپین,مبلغ کل,هزینه ارسال,روش پرداخت,وضعیت,تاریخ ثبت");
+                var orders = await _context.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Campaign)
+                    .Where(o => o.Status != "Open")
+                    .ToListAsync();
+
+                foreach (var o in orders)
+                {
+                    csv.AppendLine($"{o.Id},{o.User?.FullName},{o.Campaign?.Name},{o.TotalAmount},{o.ShippingCost},{o.PaymentMethod},{o.Status},{o.CreatedAt:yyyy/MM/dd HH:mm}");
+                }
+            }
+            else if (type == "products")
+            {
+                csv.AppendLine("شناسه محصول,نام محصول,تعداد فروش رفته,درآمد کل");
+                var orders = await _context.Orders
+                    .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                    .Where(o => o.Status != "Open" && o.Status != "Cancelled")
+                    .ToListAsync();
+
+                var topProducts = orders.SelectMany(o => o.OrderItems)
+                    .GroupBy(oi => oi.ProductId)
+                    .Select(g => new
+                    {
+                        ProductId = g.Key,
+                        ProductName = g.First().Product?.Name ?? $"کد: {g.Key}",
+                        QtySold = g.Sum(oi => oi.Quantity),
+                        Revenue = g.Sum(oi => oi.TotalPrice)
+                    })
+                    .OrderByDescending(p => p.QtySold)
+                    .ToList();
+
+                foreach (var p in topProducts)
+                {
+                    csv.AppendLine($"{p.ProductId},{p.ProductName},{p.QtySold},{p.Revenue}");
+                }
+            }
+            else
+            {
+                // Default: Campaigns comparison report
+                csv.AppendLine("شناسه کمپین,نام کمپین,تعداد سفارشات,درآمد کل,تاریخ شروع,تاریخ پایان,وضعیت");
+                var campaigns = await _context.Campaigns.ToListAsync();
+                var orders = await _context.Orders.Where(o => o.Status != "Open" && o.Status != "Cancelled").ToListAsync();
+
+                foreach (var c in campaigns)
+                {
+                    var cOrders = orders.Where(o => o.CampaignId == c.Id).ToList();
+                    string status = c.IsActive && c.EndDate >= DateTime.UtcNow ? "فعال" : "غیرفعال/منقضی";
+                    csv.AppendLine($"{c.Id},{c.Name},{cOrders.Count},{cOrders.Sum(o => o.TotalAmount)},{c.StartDate:yyyy/MM/dd},{c.EndDate:yyyy/MM/dd},{status}");
+                }
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            return File(bytes, "text/csv; charset=utf-8", $"{type}_report_{DateTime.Now:yyyyMMdd}.csv");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting report");
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+    }
 }
 
 public class FooterLink
@@ -786,9 +1240,9 @@ public class FooterLink
 public class SiteSettingsModel
 {
     public string SmsApiKey { get; set; } = string.Empty;
-    public string SmsSenderId { get; set; } = string.Empty;
+    public string SenderId { get; set; } = string.Empty;
     public string PaymentMerchantId { get; set; } = string.Empty;
-    public string PaymentCallbackUrl { get; set; } = string.Empty;
+    public string CallbackUrl { get; set; } = string.Empty;
     public int MagicLinkExpiry { get; set; } = 30;
     public List<FooterLink> FooterLinks { get; set; } = [];
     public string ContactInfo { get; set; } = string.Empty;
@@ -796,7 +1250,15 @@ public class SiteSettingsModel
 
 public class CreateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
 public class UpdateCampaignRequest { public string Name { get; set; } = string.Empty; public string Slug { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime EndDate { get; set; } public bool IsActive { get; set; } }
-public class CreateSupplierRequest { public string Name { get; set; } = string.Empty; public string WebsiteUrl { get; set; } = string.Empty; public string ContactInfo { get; set; } = string.Empty; public bool RequiresTrackingCode { get; set; } }
+public class CreateSupplierRequest { public string Name { get; set; } = string.Empty; public string Website { get; set; } = string.Empty; public string ContactInfo { get; set; } = string.Empty; public bool RequiresTrackingCode { get; set; } }
+public class CreateProductRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal BasePrice { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
+}
+
 public class ScrapeRequest { public string Url { get; set; } = string.Empty; public Dictionary<string, string> ExtractionConfig { get; set; } = []; }
 public class ChangeRoleRequest { public string Role { get; set; } = string.Empty; }
 public class UpdateStatusRequest { public string Status { get; set; } = string.Empty; }
@@ -814,4 +1276,24 @@ public class ConfirmImportItem
     public int Stock { get; set; }
     public int MinQtyPerUser { get; set; }
     public int MaxQtyPerUser { get; set; }
+}
+
+public class CreatePaymentMethodRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string GatewayName { get; set; } = string.Empty;
+    public string GatewayConfig { get; set; } = "{}";
+    public bool IsActive { get; set; }
+    public string? Description { get; set; }
+}
+
+public class CreateShippingMethodRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? LogoUrl { get; set; }
+    public string? ApiKey { get; set; }
+    public string? ApiUrl { get; set; }
+    public decimal BaseCost { get; set; }
+    public bool IsActive { get; set; }
 }

@@ -16,39 +16,35 @@
     <div class="payment-method-selection">
       <h3>انتخاب روش پرداخت</h3>
       
-      <div class="method-option">
-        <p-radioButton name="paymentMethod" value="online" [(ngModel)]="paymentMethod" inputId="opt-online"></p-radioButton>
-        <label for="opt-online" class="method-label">
-          <i class="pi pi-globe"></i>
+      <div *ngFor="let method of availableMethods" class="method-option" (click)="selectMethod(method)" style="cursor: pointer; margin-bottom: 12px;">
+        <p-radioButton name="paymentMethodGroup" [value]="method.id" [(ngModel)]="selectedMethodId" [inputId]="'opt-' + method.id"></p-radioButton>
+        <label [for]="'opt-' + method.id" class="method-label" style="cursor: pointer;">
+          <i class="pi" [ngClass]="method.type === 'Gateway' ? 'pi-globe' : 'pi-credit-card'"></i>
           <div>
-            <strong>پرداخت آنلاین (درگاه پرداخت شبیه‌ساز)</strong>
-            <p>انتقال به درگاه اینترنتی و پرداخت سریع با تمامی کارت‌های بانکی</p>
+            <strong>{{ method.name }}</strong>
+            <p>{{ method.description || (method.type === 'Gateway' ? 'انتقال به درگاه اینترنتی و پرداخت سریع آنلاین' : 'واریز وجه کارت به کارت و ثبت فیش واریزی') }}</p>
           </div>
         </label>
       </div>
-
-      <div class="method-option">
-        <p-radioButton name="paymentMethod" value="cardToCard" [(ngModel)]="paymentMethod" inputId="opt-card"></p-radioButton>
-        <label for="opt-card" class="method-label">
-          <i class="pi pi-credit-card"></i>
-          <div>
-            <strong>انتقال کارت به کارت (ثبت فیش واریزی)</strong>
-            <p>واریز وجه به شماره کارت فروشگاه و ثبت شماره پیگیری تراکنش</p>
-          </div>
-        </label>
+      <div *ngIf="availableMethods.length === 0" style="color: #ef4444; font-weight: bold; padding: 10px 0;">
+        خطا: هیچ روش پرداختی توسط مدیر تعریف نشده است.
       </div>
     </div>
 
     <!-- Payment details conditionally based on choice -->
-    <div class="method-details" *ngIf="paymentMethod === 'cardToCard'">
+    <div class="method-details" *ngIf="paymentMethod === 'CardToCard' && selectedMethod">
       <div class="bank-details-card">
         <div class="bank-row">
+          <span>نام بانک:</span>
+          <strong>{{ selectedMethodConfig.bankName || '---' }}</strong>
+        </div>
+        <div class="bank-row">
           <span>شماره کارت:</span>
-          <strong class="copyable-text">{{ cardNumber }}</strong>
+          <strong class="copyable-text" style="font-size: 1.15rem; letter-spacing: 1px;">{{ selectedMethodConfig.cardNumber }}</strong>
         </div>
         <div class="bank-row">
           <span>نام صاحب حساب:</span>
-          <strong>{{ cardHolderName }}</strong>
+          <strong>{{ selectedMethodConfig.holderName }}</strong>
         </div>
       </div>
 
@@ -58,10 +54,10 @@
       </div>
     </div>
 
-    <div class="method-details" *ngIf="paymentMethod === 'online'">
+    <div class="method-details" *ngIf="paymentMethod === 'Gateway' && selectedMethod">
       <p class="info-text">
         <i class="pi pi-info-circle"></i>
-        پس از کلیک بر روی دکمه پرداخت، به صفحه درگاه شبیه‌سازی‌شده پرداخت بانکی هدایت خواهید شد.
+        پس از کلیک بر روی دکمه پرداخت، به صفحه درگاه شبیه‌سازی‌شده بانکی ({{ selectedMethod.name }}) هدایت خواهید شد.
       </p>
     </div>
 

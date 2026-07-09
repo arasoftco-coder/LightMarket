@@ -44,4 +44,10 @@ export class OrderService {
       map(res => res.data)
     );
   }
+
+  getPublicShippingMethods(addressId: number, campaignId: number): Observable<any> {
+    return this.http.get<any>(`/api/admin/shipping-methods/public?addressId=${addressId}&campaignId=${campaignId}`).pipe(
+      map(res => res.data)
+    );
+  }
 }

@@ -12,8 +12,11 @@ import { AdminService } from '../../services/admin.service';
       <h2>واردات محصولات از اکسل</h2>
       
       <div class="upload-section">
-        <input type="file" (change)="onFileSelected($event)" accept=".xlsx,.xls" />
+        <input type="file" (change)="onFileSelected($event)" accept=".xlsx,.xls,.csv" />
         <button (click)="uploadFile()" [disabled]="!selectedFile" class="btn-primary">آپلود و پردازش</button>
+        <a href="/api/admin/products/import-template" class="btn-template" style="margin-right: auto; text-decoration: none; color: #007bff; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+          📥 دانلود قالب نمونه اکسل / CSV
+        </a>
       </div>
 
       <div class="preview-section" *ngIf="matchResults.length > 0">

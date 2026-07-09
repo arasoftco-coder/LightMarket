@@ -11,3 +11,10 @@
 .checkout-placeholder p {
   color: var(--text-light);
 }
+
+.disabled-address, .disabled-shipping {
+  opacity: 0.55;
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  cursor: not-allowed !important;
+}
